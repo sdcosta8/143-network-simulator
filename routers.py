@@ -35,6 +35,8 @@ class Router:
         '''
         # Perform the minimum spanning tree protocol??
         
+        # Get the sum of the dynamic and static cost of all the links
+        
         # Preform the bell man ford algorithm to update the routing table
         
         # Unclear how often this function will be preformed.
@@ -71,6 +73,7 @@ class Router:
 
         # This function will be called when a packet arrives at a router
         
-        # The router will look at the packet for its final destination and then
-        # it will look up the final destination its its routing table and place
-        # the packet in its outgoing packets queue.
+        # The router will look at the packet for its final destination
+        
+        # then it will place the packet in its outgoing packets queue 
+    
