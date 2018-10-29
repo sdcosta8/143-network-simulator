@@ -34,6 +34,11 @@ class Host:
     
         self.max_window = max_window_size
         
+        # This is the time that a host will wait for an acknowledgement to
+        # come back after it sends a packet. If this time is exceeded, the host
+        # will resend the packet
+        self.maximum_wait_time = 15
+        
     def initialize_flow(self, size):
         # Initialize the flow, by passing in the size of the transfer of info,
         # and get the packets returned by the flow
@@ -58,10 +63,18 @@ class Host:
         # Send an acknowlegment by initalizing an acknowledgment packet and
         # putting it into the outgoing_packets queue. 
         
-        # If the packet is an acknowledgement, 
-        # adjust the current window size
-        # and add the acknowledgment to the acknowledgment queue for the host
-        # and remove the packet from the sent packets queue
+        # If the packet is an acknowledgement:
+        
+        # We want to first check that it 
+        # is not associated with a timeout that is that the acknowledgment 
+        # corresponds with a packet in the sent queue and if it is associated 
+        # with a timeout we should just ignore it
+        
+        # Adjust the current window size
+        
+        # Add the acknowledgment to the acknowledgment queue for the host
+        
+        # Remove the packet from the sent packets queue
         
         # Remove the flow from the flow queue
         ##### QUESTION: How do we keep the acknowledge queue from getting
@@ -90,4 +103,36 @@ class Host:
         
         # Update the flow information for the packets that are going to be sent
         # in the flow queue for the host
+        pass
+    
+    def check_for_timeouts(self):
+        '''
+        This function we want to see if a packet was dropped due to a timeout. 
+        This will occur if the max waiting time of the host is greater than the
+        time delta of the time that the packet was sent at.
+        '''
+        # Go through the queue of sent packets and see if any of them have a 
+        # time stamp ( time that they were sent - current time) that is greater
+        # than the max time stamp. If not, you want to update the time stamp for
+        # each package by incrementing it for the iteration and then moving to 
+        # the next packet. 
+        
+        # If a packet in the queue has exceeded the timeout time, we want to 
+        # remove it from the queue, and place it on the outgoing packets queue
+        # in order to be resent. We should also perform the appropriate update 
+        # to the window size based on our protocol. We also want to mark 
+        # somewhere that this packet has timed out for bookkeeping.
+        
+        pass
+    
+    def check_for_three_ack(self):
+        '''
+        This function we want to see if a three of the same acknowledgements are
+        recieved for protocols like Reno. 
+        We will just check when an acknowledgment is recieved that the last 3 
+        acknowledgments recieved for a given flow are not the same and if they 
+        are we should perform the appropriate update to the window size for our
+        protocol.
+        '''    
+        
         pass
