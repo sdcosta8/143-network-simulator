@@ -34,7 +34,25 @@ class Link:
         # Initalize a list that holds all the current packets in the link, this
         # will be updated as packets go into the link and out of it.
         self.current_packets = []
+
+
+        self.queue_capacity = capacity
         
+
+
+    def update_bit_rate(self):
+        '''
+        The bit rate should be equal to the amount of bits sent over the 
+        previous time stamp divided by the time delta. At most, in will
+        equal the capacity of the link. At least, we are able to send everything 
+        that was previously in the buffer, so we calculate the total bits over 
+        those packets and divide by the time delta.
+        '''
+
+        pass 
+
+
+
     def add_packets(self, pkt):
         '''
         This function will take packets that arrived at the link and put them into
