@@ -2,9 +2,15 @@ from collections import deque
 
 
 class Host:
-    def __init__(self, ip_address, link_connected, max_window_size):
+    def __init__(self, ip_address, link_connected, max_window_size, id, network):
         # Initialize the ip_address of the host
         self.ip = ip_address
+        
+        # The id of the host represented as an integer
+        self.id = id
+
+        # Reference to the network object
+        self.network = network
         
         # Initialize the recieved packets queue. This will hold all the packets
         # that the host recieves
@@ -81,7 +87,7 @@ class Host:
         ##### too big. 
         pass
     
-    def send_packets (self):
+    def send_packets(self):
         '''
         This function will be called at every iteration of the global timer to
         see if there are any packets that can be sent by the host.
@@ -136,3 +142,10 @@ class Host:
         '''    
         
         pass
+
+    def run(self):
+    	'''
+		Called by the network at every interruption
+        Check queues to see if any packets can be sent
+		'''
+    	pass

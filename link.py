@@ -2,7 +2,13 @@ from collections import deque
 
 
 class Link:
-    def __init__(self, connection1, connection2, capacity, static_cost):
+    def __init__(self, connection1, connection2, capacity, static_cost, id, network):
+
+        # The id of the link represented as an integer
+        self.id = id
+
+        # Reference to the network object
+        self.network = network
         
         # Initialize the capacity of the link
         self.capacity = capacity
@@ -29,7 +35,7 @@ class Link:
         
         # Initialize the dynamic cost - we will probably need a function
         ### Need help with this part, like what exactly is it ?###
-        self.dynamic_cost = dynamic_cost
+        # self.dynamic_cost = dynamic_cost
         
         # Initalize a list that holds all the current packets in the link, this
         # will be updated as packets go into the link and out of it.
@@ -80,3 +86,10 @@ class Link:
         # say that the packet has arrived and call that connections recieved 
         # function packet 
         
+
+    def run(self):
+        '''
+        Called by the network at every interruption
+        Check queues to see if any packets has arrived
+        '''
+        pass

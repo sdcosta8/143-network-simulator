@@ -1,6 +1,6 @@
 
 
-class Packet():
+class Packet:
 
 	# Static variables for the class. 
 	# These will represent the different packet types. 
@@ -15,15 +15,21 @@ class Packet():
 
 
 	def __init__(self, num_bits, packet_type, source, destination, 
-		time_spawn, in_transit, curr_pos, flow_id=None, packet_info=None, \
-		packet_no=None, last_packet=None):
+		time_spawn, in_transit, curr_pos, id, network,
+		flow=None, packet_info=None, packet_no=None, last_packet=None):
+
+		# The id of the packet represented as an integer
+		self.id = id
+
+		# Reference to the network object
+		self.network = network
 
 		# number of bits in the packet. should be Packet.PACKET_SIZE, 
 		# Packet.MESSAGE_SIZE, or Packet.ACK_SIZE
 		self.num_bits = num_bits
 
 		# packet_type should be Packet.PACKET, Packet.ACK, or Packet.MESSAGE
-		self.packet_type = packet_types
+		self.packet_type = packet_type
 
 		# A reference to the host from which the packet spawned
 		self.source = source
@@ -45,7 +51,7 @@ class Packet():
 		# This should be a reference to the flow object or None. For the cases
 		# where routers are passing messages to determine shortest path, the 
 		# packets won't have a flow id 
-		self.flow_id = flow_id
+		self.flow = flow
 
 		# For message passing, this will be the information used for the 
 		# shortest path algorithm represented as an array. For other packet 
@@ -56,7 +62,7 @@ class Packet():
 		# none if the packet doesn't have a flow id
 		self.packet_no = packet_no
 
-		# 0 if the packet is the last packet in the flow. 1 otherwise. This
+		# 1 if the packet is the last packet in the flow. 0 otherwise. This
 		# should be none if the packet doesn't have a flow id
 		self.last_packet = last_packet
 
@@ -67,8 +73,3 @@ class Packet():
 		# The next time at which we should do something with the packet. This should 
 		# be calculated outside of the packet class 
 		self.time_next_move = None
-
-
-
-
-

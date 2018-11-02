@@ -1,8 +1,9 @@
 from packet import Packet
+from network import Network
 
-class Flow():
+class Flow:
 
-	def __init__(self, size, source, destination, time_spawn, flow_id):
+	def __init__(self, size, source, destination, time_spawn, id, network):
 
 		# The total size of the flow. Lets represent this in bits
 		self.size = size
@@ -17,7 +18,10 @@ class Flow():
 		self.time_spawn = time_spawn
 
 		# The flow id for the flow represented as an integer
-		self.flow_id = flow_id
+		self.id = id
+
+		# Reference to the network object
+		self.network = network
 
 		# 0 if packets from the flow are still in transit. 1 if the 
 		# whole round trip of the flow is done
@@ -42,9 +46,10 @@ class Flow():
 
 		# Index the packets starting at 1
 		for i in range(1, self.num_packets + 1):
-			new_packet = Packet(Packet.PACKET_SIZE, Packet.PACKET, \
-				self.source, self.destination, self.time_spawn, 0, \
-				self.source, flow_id=self, packet_no=i)
+			new_packet = self.network.create_packet(
+				Packet.PACKET_SIZE, Packet.PACKET,
+				self.source, self.destination, 0,
+				self.source, flow=self, packet_no=i)
 			packets.append(new_packet)
 
 		# Set the last packet's flag
@@ -66,3 +71,11 @@ class Flow():
 		being received by the host that initialized the flow
 		'''
 		# TODO
+		pass
+
+	def run(self):
+		'''
+		Called by the network at every interruption
+		Handle congestion control
+		'''
+		pass

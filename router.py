@@ -3,7 +3,14 @@ from collections import deque
 
 class Router:
     
-    def __init__(self, ip_address):
+    def __init__(self, ip_address, id, network):
+
+        # The id of the router represented as an integer
+        self.id = id
+
+        # Reference to the network object
+        self.network = network
+
         # Initialize the ip_address of the router
         self.ip = ip_address        
         
@@ -77,3 +84,9 @@ class Router:
         
         # then it will place the packet in its outgoing packets queue 
     
+    def run(self):
+    	'''
+		Called by the network at every interruption
+        Check queues to see if any packets can be sent
+		'''
+    	pass
