@@ -2,6 +2,24 @@ from network import Network
 import sys
 
 DEBUG = False
+MB = 0
+KB = 1
+Mb = 2
+
+
+def convert_to_bits(num, units):
+    if units == MB:
+        return num * 8e6
+    if units == KB:
+        return num * 8e3
+    if units == Mb:
+        return num * 1e6
+
+
+# Converts a number in ms to s
+def convert_to_seconds(ms):
+    return ms * 0.001
+
 
 if __name__ == '__main__':
     args = sys.argv[1:]
@@ -35,9 +53,9 @@ if __name__ == '__main__':
     for link in links_list:
         link_id = link[0]
         print("Enter parameters for link " + str(link_id) + ".")
-        rate = float(input("Link Rate (Mbps): "))
-        delay = float((input("Link Delay (ms): ")))
-        buff = float((input("Link Buffer Size (KB): ")))
+        rate = convert_to_bits(float(input("Link Rate (Mbps): ")), Mb)
+        delay = convert_to_seconds(float(input("Link Delay (ms): ")))
+        buff = convert_to_bits(float((input("Link Buffer Size (KB): "))), KB)
         source = input("Connection 1. Input the type of node (H or R) and its id. (Ex: H1): ")
         sink = input("Connection 2. Input the type of node (H or R) and its id. (Ex: R2): ")
 
@@ -92,7 +110,7 @@ if __name__ == '__main__':
     for flow in flows_list:
         flow_id = flow[0]
         print("Enter parameters for flow " + str(flow_id) + ".")
-        size = float(input("Data Amount (MB): "))
+        size = convert_to_bits(float(input("Data Amount (MB): ")), MB)
         start_time = float(input("Flow Start Time (s): "))
         source = int(input("ID of Flow Source: "))
         dest = int(input("ID of Flow Destination: "))
@@ -119,7 +137,7 @@ if __name__ == '__main__':
             print("    Capacity: " + str(link[1].capacity))
             print("    Source IP Address: " + str(link[1].connection1.ip))
             print("    Destination IP Address: " + str(link[1].connection2.ip))
-            print("    Static Cost: " + str(link[1].static_cost))
+            print("    Propogation Time: " + str(link[1].prop_time))
             print("    Queue Capacity: " + str(link[1].queue_capacity))
 
         hosts_list = list(network.hosts.items())
