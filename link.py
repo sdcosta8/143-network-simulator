@@ -2,7 +2,8 @@ from collections import deque
 
 
 class Link:
-    def __init__(self, connection1, connection2, buffer_size, capacity, static_cost, id, network):
+    def __init__(self, connection1, connection2, buffer_size, 
+                 capacity, prop_time, id, network):
 
         # The id of the link represented as an integer
         self.id = id
@@ -25,21 +26,20 @@ class Link:
         # Intialize the link buffer
         self.buffer = deque()
         
-        # Initialize the bit rate, this will be the current packets divided by
-        # the round trip time
-        ### NEED Help with this part ####
+        # Initialize the bit rate
         self.bit_rate = -1
         
-        # Initialize the static cost, which is the length of the link
-        self.static_cost = static_cost
+        # Initialize the static cost, which is the propagation time
+        self.prop_time = prop_time
         
         # Initialize the dynamic cost - we will probably need a function
         ### Need help with this part, like what exactly is it ?###
         # self.dynamic_cost = dynamic_cost
         
-        # Initalize a list that holds all the current packets in the link, this
-        # will be updated as packets go into the link and out of it.
-        self.current_packets = []
+        # Initalize a deque that holds all the traveling packets in the link
+        # Each entry is a TUPLE, of the form (arrival time, packet object)
+        # This will be updated as packets go into the link and out of it.
+        self.traveling_packets = deque()
 
 
         self.queue_capacity = buffer_size
@@ -70,26 +70,59 @@ class Link:
         # This will simulate the packet being sent through the link
         
         # Update the congestion and dynamic cost pf the link and bit rate? 
-        pass 
+        pass
+
+    def send_packet(self, curr_time, packet):
+        '''
+        Takes a packet that is popped from the buffer and schedule it for
+        transimision.
+        '''
+        arrival_time = (
+            curr_time +(packet.num_bits / self.bit_rate) + self.prop_time)
+        self.traveling_packets.append((arrival_time, packet))
+
     
     def finish_sending_packet(self, packet):
         '''
-        This function will be invoked by the router or host or packet when they 
-        are supposed to be finished sending. 
+        This function will be invoked when the packet is supposed to 
+        finish sending. 
         '''
+        # Tell connection2 that the packet has arrived
+        self.connection2.receive_packet(packet)
         
-        # The packet is removed from the current_packets queue
-        
-        # The bit rate and dynamic cost of the link should be updated
-        
-        # The link should call one of the connections that it is connected to 
-        # say that the packet has arrived and call that connections recieved 
-        # function packet 
+        # TODO: The dynamic cost of the link should be updated
         
 
-    def run(self):
+    def run(self, curr_time):
         '''
         Called by the network at every interruption
         Check queues to see if any packets has arrived
         '''
-        pass
+        # Check traveling packets and see if any packet should arrive
+        while len(self.traveling_packets) > 0:
+            arrival_time, packet = self.traveling_packets[0]
+            # If this packet should arrive at connection2
+            if arrival_time <= curr_time:
+                self.traveling_packets.popleft()
+                self.finish_sending_packet(packet)
+            else:
+                break
+        
+        # Check if the capacity is reached to send packets from buffer
+        # Number of bits we are planning to send
+        bits_planning = 0
+        # Number of more bits we can send at this time
+        bits_capacity = self.capacity * self.network.TIMESTEP
+        for _, packet in self.traveling_packets:
+            bits_capacity -= packet.num_bits
+        while len(self.buffer) > 0:
+            bits_planning += self.buffer[0].num_bits
+            # If we cannot send this packet, break
+            if bits_planning > bits_capacity:
+                break
+            # If we can, pop it off of the buffer and send this packet
+            packet = self.buffer.popleft()
+            self.send_packet(curr_time, packet)
+            
+
+
