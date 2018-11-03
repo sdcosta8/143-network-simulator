@@ -46,31 +46,26 @@ class Link:
         
 
 
-    def update_bit_rate(self):
+    def add_packets(self, packets):
         '''
-        The bit rate should be equal to the amount of bits sent over the 
-        previous time stamp divided by the time delta. At most, in will
-        equal the capacity of the link. At least, we are able to send everything 
-        that was previously in the buffer, so we calculate the total bits over 
-        those packets and divide by the time delta.
+        Takes a list of packets, puts them into the link buffer.
+        This function will be called by connection1
         '''
-
-        pass 
-
-
-
-    def add_packets(self, pkt):
-        '''
-        This function will take packets that arrived at the link and put them into
-        the link buffer. This function will be called by the con 
-        '''
+        # Check if the buffer will be full
+        buffer_used = 0
+        for pkt in self.buffer:
+            buffer_used += pkt.num_bits
         
-        # The packet will be put into the buffer
-        
-        # This will simulate the packet being sent through the link
-        
-        # Update the congestion and dynamic cost pf the link and bit rate? 
-        pass
+        for pkt in packets:
+            buffer_used += pkt.num_bits
+            # If we have space, put packet in the buffer
+            if buffer_used < self.queue_capacity:
+                self.buffer.append(pkt)
+            else:
+                # TODO: drop the packet/ smth else based on protocal
+                pass
+            pkt.curr_pos = self
+        # TODO: Update the congestion and dynamic cost pf the link and bit rate? 
 
     def send_packet(self, curr_time, packet):
         '''
@@ -89,7 +84,7 @@ class Link:
         '''
         # Tell connection2 that the packet has arrived
         self.connection2.receive_packet(packet)
-        
+        packet.curr_pos = self.connection2
         # TODO: The dynamic cost of the link should be updated
         
 
