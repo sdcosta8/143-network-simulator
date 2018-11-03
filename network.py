@@ -23,6 +23,7 @@ class Network:
         self.packets = {}
         self.next_packet_id = 0
         self.current_time = 0
+        self.is_running = False
 
     def create_flow(self, size, source, destination, spawn_time):
         flow = Flow(size, source, destination, spawn_time,
@@ -67,17 +68,18 @@ class Network:
         '''
         Call and run all components of the network
         '''
-        for _, flow in self.flows.items():
-            flow.run()
-        for _, host in self.hosts.items():
-            host.run()
-        for _, router in self.routers.items():
-            router.run()
-        for _, link in self.links.items():
-            link.run()
-        for _, flow in self.flows.items():
-            flow.run()
-        
-        # TODO: book keeping
+        while self.is_running:
+            for _, flow in self.flows.items():
+                flow.run(self.current_time)
+            for _, host in self.hosts.items():
+                host.run(self.current_time)
+            for _, router in self.routers.items():
+                router.run(self.current_time)
+            for _, link in self.links.items():
+                link.run(self.current_time)
+            for _, flow in self.flows.items():
+                flow.run(self.current_time)
+
+            self.current_time += self.TIMESTEP
 
     
