@@ -25,7 +25,7 @@ class Host:
         self.sent_packets = deque()
         
         # The link object that the host is connected to         
-        self.link = link_connected
+        self.links = []
         
         # Initialize the recieved acknowledgements queue. This will hold all 
         # the acknowledgements of the packets that this host sent, so it can 

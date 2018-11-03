@@ -1,5 +1,5 @@
 from packet import Packet
-from network import Network
+#from network import Network
 
 class Flow:
 

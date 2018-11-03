@@ -24,8 +24,8 @@ class Network:
         self.next_packet_id = 0
         self.current_time = 0
 
-    def create_flow(self, size, source, destination):
-        flow = Flow(size, source, destination, self.current_time,
+    def create_flow(self, size, source, destination, spawn_time):
+        flow = Flow(size, source, destination, spawn_time,
                     self.next_flow_id, self)
         self.flows[self.next_flow_id] = flow
         self.next_flow_id += 1
@@ -38,8 +38,8 @@ class Network:
         self.next_host_id += 1
         return host
 
-    def create_link(self, connection1, connection2, capcity, static_cost):
-        link = Link(connection1, connection2, capcity, static_cost,
+    def create_link(self, connection1, connection2, buffer_size, capcity, static_cost):
+        link = Link(connection1, connection2, buffer_size, capcity, static_cost,
                     self.next_link_id, self)
         self.links[self.next_link_id] = link
         self.next_link_id += 1

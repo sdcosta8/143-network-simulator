@@ -2,7 +2,7 @@ from collections import deque
 
 
 class Link:
-    def __init__(self, connection1, connection2, capacity, static_cost, id, network):
+    def __init__(self, connection1, connection2, buffer_size, capacity, static_cost, id, network):
 
         # The id of the link represented as an integer
         self.id = id
@@ -42,7 +42,7 @@ class Link:
         self.current_packets = []
 
 
-        self.queue_capacity = capacity
+        self.queue_capacity = buffer_size
         
 
 
