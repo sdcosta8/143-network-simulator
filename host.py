@@ -25,8 +25,10 @@ class Host:
         self.sent_packets = deque()
         
         # The link object that the host is connected to         
-        self.links = []
-        
+        self.incoming_link = []
+	
+	self.outgoing_link = []
+	
         # Initialize the recieved acknowledgements queue. This will hold all 
         # the acknowledgements of the packets that this host sent, so it can 
         # keep track of the acknowledgements that it recieves from other hosts
@@ -35,24 +37,13 @@ class Host:
         # Initialize the flows list. This will hold all 
         # the current flows that originate from this host
         self.flows = []    
-        
-        self.current_window = 0
-    
-        self.max_window = max_window_size
-        
+	
+        self.waiting_flows = []
+	
         # This is the time that a host will wait for an acknowledgement to
         # come back after it sends a packet. If this time is exceeded, the host
         # will resend the packet
         self.maximum_wait_time = 15
-        
-    def initialize_flow(self, size):
-        # Initialize the flow, by passing in the size of the transfer of info,
-        # and get the packets returned by the flow
-        
-        # Place packets returned by the flow into the outgoing_packets queue
-        
-        # Place the flow into the host's flow queue
-        pass
     
     
     def recieve_packet(self, pkt):
@@ -92,25 +83,39 @@ class Host:
         This function will be called at every iteration of the global timer to
         see if there are any packets that can be sent by the host.
         '''
+        # See if there are any packets to be sent by the host
+	if len(self.outgoing_packets) == 0:
+	    return
+	
+	for index in range(len(self.outgoing_packets)):
+	    # Get the flow info for the packet in the outgoing queue
+	    flow_of_packet = self.outgoing_packets[index].flow
+	    
+	    # Check the flows current window size and see if it is
+	    # possible to send more packets	
+	    if flow_of_packet.current_window <= flow_of_packet.max_window:
+		
+		# Remove the packet from outgoing queue because it can be sent
+		pkt = self.outgoing_packets[index]
+		
+		# Delete the packet from the outgoing queue
+		del self.outgoing_packets[index]
+		
+		
+		# We want to send the packet
+		self.outgoing_link.add_packets(pkt)
+		
+		# Place the packet on to the sent queue
+		self.sent_packets.append(pkt)
+		
+		# Update the window size for the flow by adding one to it
+		flow_of_packet.current_window += 1 
+		
+		if DEBUG:
+		    print ("sent packet = " + pkt.id + "of flow id = " + flow_of_packet.id)
+		    print("flow's window size is " +  flow_of_packet.current_window)
         
-        # At the timer interrupt, the host will check its current window size 
-        # and see if it is possible to send more packets
-        
-        # If there are no packets to send or the window size is at its maximum,
-        # the function should return
-        
-        # The packets will then be placed into the sent packets queue from the
-        # outgoing queue until the outgoing queue is empty or the max window size
-        # is reached ( so we need to update the max window size).
-        
-        # These newly sent packets should call a method of the host's link 
-        # to let it know that packets are waiting to be sent on it so that it 
-        # can be put in the link's buffer
-        
-        # Update the flow information for the packets that are going to be sent
-        # in the flow queue for the host
-        pass
-    
+
     def check_for_timeouts(self):
         '''
         This function we want to see if a packet was dropped due to a timeout. 

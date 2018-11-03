@@ -34,8 +34,14 @@ class Flow:
 		self.num_packets = 0
 
 		# A list of packets for the flow
-		self.packets = self.construct_packets()
-
+		self.packets = []
+		
+		self.current_window = 0
+	    
+		self.max_window = max_window_size	
+		
+		# This value tells us if the flow has been spawned
+		self.spawned = False
 
 	# Used to break the flow into packets
 	def construct_packets(self):
@@ -55,8 +61,49 @@ class Flow:
 		# Set the last packet's flag
 		packets[len(packets) - 1].last_packet = 1
 		return packets
-
-
+	
+	def initialize_flow(self):
+		'''
+		When the flow spawn time equals the current time, we want to 
+		intialize the flow by splitting the flow into packets and then
+		placing the packets in the corresponding host's outgoing queue,
+		so that they can be sent.
+		'''
+		# Split up the flow into packets
+		packets = self.construct_packets()
+		
+		# Populate the flow with the packets that it is made up of
+		self.packets = packets
+		
+		# Place packets returned by the flow into the
+		# outgoing_packets queue
+		
+		# Need a for loop because don't want to append a list to another
+		# list and create a list of lists
+		for packet in packets:	
+			self.source.outgoing_packets.append(packet)
+		
+		# Intialize a flow variable, so that it will scope out side of 
+		# the for loop below
+		flow = None
+		
+		# We want to remove the flow from the waiting flow array of the 
+		# host and place it into the active flow object
+		for index in range(len(self.source.waiting_flows)):
+			flow = self.source.waiting_flows[index]
+			# Find the flow in the hosts 
+			if self.id == flow.id:
+				del source.waiting_flows[index]
+				if DEBUG:
+					print(" removed flow id:" + flow.id)
+				break
+		
+		if flow == None:
+			print(" ERROR: NO FLOW FOUND IN THE WAITING QUEUE")
+		# Add the removed flow to the queues of active flows of the host
+		else:
+			self.source.flows.append(flow)
+			
 	def calc_send_receive_rate(self):
 		'''
 		Calculated as the bits of the flow received over time?
@@ -73,9 +120,27 @@ class Flow:
 		# TODO
 		pass
 
-	def run(self):
-		'''
-		Called by the network at every interruption
-		Handle congestion control
+	# Window size protocol function
+	def window_protocol():
+		''' 
+		This function will be called from the host, when it experiences
+		a timeout for a packet that belongs to this flow or it recieves
+		3 of the same acknowlegdments. Based on the protocol, the window 
+		size of the flow will be updated appropriately. This will be 
+		implemented, when we decide which protocols to use for each flow
 		'''
 		pass
+	def run(self, curr_time):
+		'''
+		Called by the network at every interruption
+		Handle congestion control. We want to check if the current
+		time is the spawn time and we want to intialize the flow. Also,
+		we want to adjust the window size of the flow.
+		'''
+		
+		if (curr_time >= time_spawn) and (self.spawned == False):
+			self.initialize_flow()
+			self.spawned = True
+		
+		
+			
