@@ -162,19 +162,19 @@ class Host:
 	if len(self.outgoing_packets) == 0:
 	    return
 	
-	for index in range(len(self.outgoing_packets)):
+	for packet in self.outgoing_packets:
 	    # Get the flow info for the packet in the outgoing queue
-	    flow_of_packet = self.outgoing_packets[index].flow
+	    flow_of_packet = packet.flow
 	    
 	    # Check the flows current window size and see if it is
 	    # possible to send more packets	
 	    if flow_of_packet.current_window <= flow_of_packet.max_window:
 		
 		# Remove the packet from outgoing queue because it can be sent
-		pkt = self.outgoing_packets[index]
+		pkt = packet
 		
 		# Delete the packet from the outgoing queue
-		del self.outgoing_packets[index]
+		self.outgoing_packets.remove(pkt)
 		
 		
 		# We want to send the packet

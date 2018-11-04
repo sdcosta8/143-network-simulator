@@ -134,6 +134,13 @@ class Flow:
 		implemented, when we decide which protocols to use for each flow
 		'''
 		pass
+	def window_size_update_when_pkt_sent():
+		''' 
+		This is the function that will be called when a packet is sent
+		so we know how the window size changes based on the protocol
+		'''
+		pass
+		
 	def update_window_size_increase():
 		''' 
 		This function will be called from the host, when it recieves and 
