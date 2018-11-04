@@ -16,7 +16,8 @@ class Packet:
 
 	def __init__(self, num_bits, packet_type, source, destination, 
 		time_spawn, in_transit, curr_pos, id, network,
-		flow=None, packet_info=None, packet_no=None, last_packet=None):
+		flow=None, packet_info=None, packet_no=None, last_packet=None, 
+	        acknowledgement_of_pkt = None):
 
 		# The id of the packet represented as an integer
 		self.id = id
@@ -73,3 +74,10 @@ class Packet:
 		# The next time at which we should do something with the packet. This should 
 		# be calculated outside of the packet class 
 		self.time_next_move = None
+		
+		# This references the packet that the acknowledgment is in 
+		# regards to
+		self.acknowledgement_of_pkt = acknowledgement_of_pkt
+		
+		# Time in recieved packets queue
+		self.time_in_queue = None

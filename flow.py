@@ -42,6 +42,10 @@ class Flow:
 		
 		# This value tells us if the flow has been spawned
 		self.spawned = False
+		
+		# This will be the packet that the flow expects next, which will
+		# help with future protocols
+		self.next_expected_packet_no = 0
 
 	# Used to break the flow into packets
 	def construct_packets(self):
@@ -121,7 +125,7 @@ class Flow:
 		pass
 
 	# Window size protocol function
-	def window_protocol():
+	def window_protocol_decrease():
 		''' 
 		This function will be called from the host, when it experiences
 		a timeout for a packet that belongs to this flow or it recieves
@@ -130,6 +134,42 @@ class Flow:
 		implemented, when we decide which protocols to use for each flow
 		'''
 		pass
+	def update_window_size_increase():
+		''' 
+		This function will be called from the host, when it recieves and 
+		acknowledgement and wants to increase the window size 
+		'''	
+	def all_packets_recieved():
+		'''
+		This function will have the flow check if all of its packets are 
+		recieved
+		'''
+		packets_recieved_ack = list(set(self.finished_packets))
+		
+		# Sort the list of recieved packets in place by their packet number
+		packets_recieved_ack.sort(key=lambda x: x.packet_no, reverse=True)
+		
+		index = 0
+		# check if all the packet numbers are in the correct order
+		for i in range(1, self.num_packets + 1):
+			if len(packets_recieved_ack) > index:
+				if DEBUG:
+					print("packet no {0} is missing of \
+					flow no {1}").format(i, self.id)
+				return False
+			if packets_recieved_ack[index].packet_num != i:
+				if DEBUG:
+					print("packet no {0} is missing of \
+					flow no {1}").format(i, self.id)
+				return False
+			index += 1
+		
+		# All the packets were recieved
+		if DEBUG:
+			print("All packets for flow no {1} are recieved")\
+			     .format(i, self.id)		
+		return True
+		
 	def run(self, curr_time):
 		'''
 		Called by the network at every interruption

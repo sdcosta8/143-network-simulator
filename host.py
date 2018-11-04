@@ -55,28 +55,103 @@ class Host:
         '''
         
         # Recieve packet and see if it is acknowledgement
+	if pkt.packet_type == 1:
+	    # This means that the packet that the host recieves is an ack
+	    
+	    # First we want to check that the ack is not associated with a 
+	    # timeout, which is something that should probably never happen if 
+	    # the timeout is set accurately
+	    if pkt.acknowledgement_of_pkt not in sent_packets:
+		# This acknowledgement corresponds to a dropped packet and we
+		# just want to ignore it and move on
+		if DEBUG:
+		    print(" recieved a dropped pkt ack for {0} in_flow {1}".\
+		          format(pkt.id, pkt.flow.id))
+		return
+	    
+	    # Remove the corresponding packet from the sent packet queue
+	    for index in range(len(self.sent_packets)):
+		# check if the packet objects are the same to find the packet 
+		# that the acknowledgement references
+		if self.sent_packets[index] == pkt.acknowledgement_of_pkt:
+		    if DEBUG:
+			print(" acknowlegement for pkt.id {0} and pkt.no {1} \
+			in_flow {1} recieved".format(pkt.id, pkt.no, pkt.flow.id))
+			
+		    # remove the packet from the sent queue
+		    del self.sent_packets[index]
+		    
+		    # add packet to the recieved acknowledgement queue
+		    #### I dont think we need this queue tbh ####
+		    self.recieved_ack.append(pkt.acknowledgement_of_pkt)
+		    
+		    # Now we want to update the flow information
+		    
+		    # Add the packet to the finished round trip packets 
+		    pkt.acknowledgement_of_pkt.flow.finished_packets.append(\
+		        pkt.acknowledgement_of_pkt)
+		    
+		    if RENO:	
+			# This will come in handy for reno and other protocols to
+			# see if we have 3 duplicate ack
+			if pkt.acknowledgement_of_pkt.packet_no == \
+			   (flow.finished_packets.next_expected_packet_no + 1):
+			    ## TODO implement protocols
+			    pass
+		    
+		    # Update the window size of the successfully recieved packet 
+		    # of the flow
+		    pkt.acknowledgement_of_pkt.flow.update_window_size_increase()
+		    
+		    # check if this packet is the last packet sent and all the
+		    # other packets in the flow have been recieved
+		    if pkt.acknowledgement_of_pkt.flow.all_packets_recieved():
+			
+			# Change the value to show that flow successfully sent
+			pkt.acknowledgement_of_pkt.flow.RT_success = True			
+			if DEBUG:
+			    print (" flow no {0} has finished sending".format(\
+			        pkt.acknowledgement_of_pkt.flow.id))
+	
+	# Check if the recieved object is a packet
+	elif pkt.packet_type == 0:
+	    if DEBUG:
+		print ( "host no {0} recieved packet number {1} of flow {2} "\
+		        + " from host no {3}").format(self.id, pkt.packet_no, \
+		                                      pkt.flow, pkt.source)
+	    
+	    # Create an acknowledgement for the packet 
+	    ack_packet = self.network.create_packet(
+                    Packet.ACK_SIZE, Packet.ACK,
+                    pkt.destination, pkt.source, TIME,
+                    self.source, acknowledgement_of_pkt = pkt)	    
+	    
+	    # Put this acknowledgment into the outgoing packets queue of the 
+	    # host to be sent
+	    self.outgoing_packets.append(ack_packet)
+	    
+	    ##### DO we have to move the acknowledgement packet to the 
+	    ##### sent queue, I want to say no because we dont care if it is 
+	    ##### dropped
+	    
+	    if DEBUG:
+		print ( "acknowledgement packet for pkt no {0} flow {1} was \
+		placed in host {2}'s  outgoing queue to be sent").\
+		      format(pkt.packet_no, pkt.flow, self.id)		
+	    
+	
+	# Check if the recieved object is a message
+	elif pkt.packet_type == 2:
+	    ### I dont think we need to do anything with the message if a 
+	    ### host recieves it because it is important for the routers and
+	    ### links only I thought.
+	    return 	    
+	
+	else:
+	    if DEBUG:
+		print ("host id {0} recieved incorrect packet type").\
+		      format(self.id)	    
         
-        # If it is a packet add it to the recieved packet queue
-        # Send an acknowlegment by initalizing an acknowledgment packet and
-        # putting it into the outgoing_packets queue. 
-        
-        # If the packet is an acknowledgement:
-        
-        # We want to first check that it 
-        # is not associated with a timeout that is that the acknowledgment 
-        # corresponds with a packet in the sent queue and if it is associated 
-        # with a timeout we should just ignore it
-        
-        # Adjust the current window size
-        
-        # Add the acknowledgment to the acknowledgment queue for the host
-        
-        # Remove the packet from the sent packets queue
-        
-        # Remove the flow from the flow queue
-        ##### QUESTION: How do we keep the acknowledge queue from getting
-        ##### too big. 
-        pass
     
     def send_packets(self):
         '''
@@ -108,13 +183,16 @@ class Host:
 		# Place the packet on to the sent queue
 		self.sent_packets.append(pkt)
 		
+		# Update the packets timer in the queue
+		pkt.time_in_queue = 0
+		
 		# Update the window size for the flow by adding one to it
-		flow_of_packet.current_window += 1 
+		flow_of_packet.window_size_update_when_pkt_sent()
 		
 		if DEBUG:
 		    print ("sent packet = " + pkt.id + "of flow id = " + flow_of_packet.id)
 		    print("flow's window size is " +  flow_of_packet.current_window)
-        
+		
 
     def check_for_timeouts(self):
         '''
@@ -134,7 +212,36 @@ class Host:
         # to the window size based on our protocol. We also want to mark 
         # somewhere that this packet has timed out for bookkeeping.
         
-        pass
+        # Go through the packets in the queue and update their waiting times in
+	# the queue
+	
+        for index in range(len(self.sent_packets)):
+	    packet = self.sent_packets[index]
+	    packet.time_in_queue += 1
+	
+	# Go through again and check if any of the packets have been waiting 
+	# for an acknowledgement that they should be timed out 
+	for packet in self.sent_packets:
+	    if packet.time_in_queue > self.maximum_wait_time:
+		# We want to remove the packet from the sent queue and resend 
+		# it 
+		### I just reset the fields of the packet and put it in the 
+		### outgoing packet queue of the host to simulate "resending"
+		self.sent_packets.remove(packet)
+		packet.time_spawn = TIME
+		packet.curr_pos = packet.source
+		packet.sent = None
+		packet.time_next_move = None
+		packet.time_in_queue = None
+		
+		# Put the timed out packet back into the outgoing packet queue
+		self.outgoing_packets.append(packet)
+		if DEBUG:
+		    print ( " pkt no {0} flow {1} has timed out and was \
+		    placed in host {2}'s  outgoing queue to be sent").\
+			  format(packet.packet_no, packet.flow, self.id)			
+		
+	
     
     def check_for_three_ack(self):
         '''
@@ -153,4 +260,11 @@ class Host:
 		Called by the network at every interruption
         Check queues to see if any packets can be sent
 		'''
+	# Check if any sent packets exceed the timeout
+	check_for_timeouts()
+	
+	# See if it is possible to send any packets from the host's outgoing 
+	# queue
+	send_packets()
+	
     	pass
