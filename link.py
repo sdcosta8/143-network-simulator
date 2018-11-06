@@ -71,13 +71,18 @@ class Link:
             pkt.curr_pos = self
         # TODO: Update the congestion and dynamic cost pf the link and bit rate? 
 
-    def send_packet(self, curr_time, packet):
+        # Field to keep track of current time
+        self.curr_time = None
+
+    def send_packet(self, packet):
         '''
         Takes a packet that is popped from the buffer and schedule it for
         transimision.
         '''
         arrival_time = (
-            curr_time +(packet.num_bits / self.bit_rate) + self.prop_time)
+            self.curr_time + 
+            (packet.num_bits / self.bit_rate) + 
+            self.prop_time)
         self.traveling_packets.append((arrival_time, packet))
 
     
@@ -97,11 +102,14 @@ class Link:
         Called by the network at every interruption
         Check queues to see if any packets has arrived
         '''
+        # Update internal clock
+        self.curr_time = curr_time
+
         # Check traveling packets and see if any packet should arrive
         while len(self.traveling_packets) > 0:
             arrival_time, packet = self.traveling_packets[0]
             # If this packet should arrive at connection2
-            if arrival_time <= curr_time:
+            if arrival_time <= self.curr_time:
                 self.traveling_packets.popleft()
                 self.finish_sending_packet(packet)
             else:
@@ -121,7 +129,7 @@ class Link:
                 break
             # If we can, pop it off of the buffer and send this packet
             packet = self.buffer.popleft()
-            self.send_packet(curr_time, packet)
+            self.send_packet(packet)
             
 
 

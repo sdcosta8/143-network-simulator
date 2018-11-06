@@ -23,19 +23,23 @@ class Network:
         self.next_link_id = 0
         self.packets = {}
         self.next_packet_id = 0
-        self.current_time = 0
+        self.curr_time = 0
         self.is_running = False
 
     def create_flow(self, size, source, destination, spawn_time, max_window):
         flow = Flow(size, source, destination, spawn_time, max_window,
                     self.next_flow_id, self)
         self.flows[self.next_flow_id] = flow
+        if DEBUG:
+            print("Flow successfully created, id:", self.next_flow_id)
         self.next_flow_id += 1
         return flow
 
     def create_host(self, ip_address, link_connected=None):
         host = Host(ip_address, link_connected, self.next_host_id, self)
         self.hosts[self.next_host_id] = host
+        if DEBUG:
+            print("Host successfully created, id:", self.next_host_id)
         self.next_host_id += 1
         return host
 
@@ -43,12 +47,16 @@ class Network:
         link = Link(connection1, connection2, buffer_size, capcity, static_cost,
                     self.next_link_id, self)
         self.links[self.next_link_id] = link
+        if DEBUG:
+            print("Link successfully created, id:", self.next_link_id)
         self.next_link_id += 1
         return link
 
     def create_router(self, ip_address):
         router = Router(ip_address, self.next_router_id, self)
         self.routers[self.next_router_id] = router
+        if DEBUG:
+            print("Router successfully created, id:", self.next_router_id)
         self.next_router_id += 1
         return router
     
@@ -57,7 +65,7 @@ class Network:
                       flow_id=None, packet_info=None,
                       packet_no=None, last_packet=None):
         packet = Packet(num_bits, packet_type, source, destination,
-                        self.current_time, in_transit, curr_pos,
+                        self.curr_time, in_transit, curr_pos,
                         self.next_packet_id, self,
                         flow_id, packet_info, packet_no, last_packet)
         self.packets[self.next_packet_id] = packet
@@ -70,16 +78,16 @@ class Network:
         '''
         while self.is_running:
             for _, flow in self.flows.items():
-                flow.run(self.current_time)
+                flow.run(self.curr_time)
             for _, host in self.hosts.items():
-                host.run(self.current_time)
+                host.run(self.curr_time)
             for _, router in self.routers.items():
-                router.run(self.current_time)
+                router.run(self.curr_time)
             for _, link in self.links.items():
-                link.run(self.current_time)
+                link.run(self.curr_time)
             for _, flow in self.flows.items():
-                flow.run(self.current_time)
+                flow.run(self.curr_time)
 
-            self.current_time += TIMESTEP
+            self.curr_time += TIMESTEP
 
     

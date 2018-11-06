@@ -41,7 +41,10 @@ class Router:
         self.root = id
         
         # The distance from the root that the router thinks it is
-        self.distance = 0 
+        self.distance = 0
+
+        # Field to keep track of current time
+        self.curr_time = None
     
         
     def update_routing_table(self):
@@ -86,7 +89,7 @@ class Router:
             self.curr_pos = chosen_link
             
             if DEBUG:
-                print ("sent packet = " + packet.id + "of flow id = " + packet.id)
+                print("sent packet = " + packet.id + "of flow id = " + packet.id)
                 print("from router " +  self.id)
         
     def recieve_packet(self, pkt):
@@ -128,10 +131,13 @@ class Router:
         self.outgoing_packets.append(pkt)
         
     
-    def run(self):
+    def run(self, curr_time):
         '''
         Called by the network at every interruption
         Check queues to see if any packets can be sent
         '''
+        # Update internal clock
+        self.curr_time = curr_time
+        
         self.send_packet()
         self.update_routing_table()

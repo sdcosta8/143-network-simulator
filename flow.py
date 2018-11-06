@@ -50,6 +50,9 @@ class Flow:
         # help with future protocols
         self.next_expected_packet_no = 0
 
+        # Field to keep track of current time
+        self.curr_time = None
+
     # Used to break the flow into packets
     def construct_packets(self):
         assert(self.size % PACKET_SIZE == 0)
@@ -179,6 +182,9 @@ class Flow:
         time is the spawn time and we want to intialize the flow. Also,
         we want to adjust the window size of the flow.
         '''
+        # Update internal clock
+        self.curr_time = curr_time
+        
         # Check if a flow should be initialized
         if (curr_time >= self.time_spawn) and (self.spawned == False):
             self.initialize_flow()
