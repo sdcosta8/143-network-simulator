@@ -1,11 +1,8 @@
-from network import Network
 import sys
-
-DEBUG = False
-MB = 0
-KB = 1
-Mb = 2
-
+from network import Network
+from utils import (
+    DEBUG, MB, KB, Mb, RENO
+)
 
 def convert_to_bits(num, units):
     if units == MB:
@@ -43,15 +40,14 @@ if __name__ == '__main__':
                 network.create_link(None, None, None, None, None)
 
             if args[i] == "Flows":
-                network.create_flow(None, None, None, None)
+                network.create_flow(None, None, None, None, None)
         i += 2
 
     # TODO: write functions to convert units to bits and seconds
 
     # Get the true values for the links
     links_list = list(network.links.items())
-    for link in links_list:
-        link_id = link[0]
+    for link_id, link in links_list:
         print("Enter parameters for link " + str(link_id) + ".")
         rate = convert_to_bits(float(input("Link Rate (Mbps): ")), Mb)
         delay = convert_to_seconds(float(input("Link Delay (ms): ")))
@@ -69,23 +65,23 @@ if __name__ == '__main__':
         else:
             sink_ref = network.routers[int(sink_ref[1:])]
 
-        link[1].capacity = rate
-        link[1].connection1 = source_ref
-        link[1].connection2 = sink_ref
-        link[1].queue_capacity = buff
+        link.capacity = rate
+        link.connection1 = source_ref
+        link.connection2 = sink_ref
+        link.queue_capacity = buff
 
         # TODO: should the cost be the delay?
-        link[1].static_cost = delay
+        link.static_cost = delay
 
         # We should also create a second link with the same properties between
         # the source and sink
         new_link = network.create_link(sink_ref, source_ref, buff, rate, delay)
 
         # Make sure the nodes also reference the links
-        source_ref.links.append(link[1])
-        source_ref.links.append(new_link)
-        sink_ref.links.append(link[1])
-        sink_ref.links.append(new_link)
+        source_ref.incoming_link = link
+        source_ref.outgoing_link = new_link
+        sink_ref.incoming_link = link
+        sink_ref.outgoing_link = new_link
 
     # Get the parameters for hosts 
     hosts_list = network.hosts.items()
@@ -94,8 +90,9 @@ if __name__ == '__main__':
         print("Enter parameters for host " + str(host_id) + ".")
         ip = input("IP address: ")
         host[1].ip = ip 
-        wind_size = float(input("Input Max Window Size: "))
-        host[1].max_window = wind_size
+        # TODO: max_window only for the flow???
+        # wind_size = float(input("Input Max Window Size: "))
+        # host[1].max_window = wind_size
 
     # Get the parameters for routers
     routers_list = network.routers.items()
@@ -131,14 +128,13 @@ if __name__ == '__main__':
         if (len(links_list) > 0):
             print("\n")
             print("________Links________")
-        for link in links_list:
-            link_id = link[0]
+        for link_id, link in links_list:
             print("Printing out fields for Link " + str(link_id) + ".")
-            print("    Capacity: " + str(link[1].capacity))
-            print("    Source IP Address: " + str(link[1].connection1.ip))
-            print("    Destination IP Address: " + str(link[1].connection2.ip))
-            print("    Propogation Time: " + str(link[1].prop_time))
-            print("    Queue Capacity: " + str(link[1].queue_capacity))
+            print("    Capacity: " + str(link.capacity))
+            print("    Source IP Address: " + str(link.connection1.ip))
+            print("    Destination IP Address: " + str(link.connection2.ip))
+            print("    Propogation Time: " + str(link.prop_time))
+            print("    Queue Capacity: " + str(link.queue_capacity))
 
         hosts_list = list(network.hosts.items())
         if (len(hosts_list) > 0):
@@ -149,12 +145,13 @@ if __name__ == '__main__':
             print("Printing out Fields for Host " + str(host_id) + ".")
             print("    IP Address: " + str(host[1].ip))
             print("    ID of Links to/from Host:")
-            for link in host[1].links:
-                print("    " + str(link.id))
+            print("    " + str(host[1].incoming_link.id))
+            print("    " + str(host[1].outgoing_link.id))
             print("    ID of Flows from Host:")
             for flow in host[1].flows:
                 print("    " + str(flow.id))
-            print("    Max Window Size: " + str(host[1].max_window))
+            # max_window only for the flow???
+            # print("    Max Window Size: " + str(host[1].max_window))
 
         routers_list = list(network.routers.items())
         if (len(routers_list) > 0):

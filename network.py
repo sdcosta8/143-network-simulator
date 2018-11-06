@@ -3,11 +3,12 @@ from host import Host
 from link import Link
 from router import Router
 from packet import Packet
+from utils import (
+    DEBUG, RENO, TIMESTEP,
+    PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
+)
 
 class Network:
-
-    TIMESTEP = 0.1
-
 
     def __init__(self):
         # All the objects in the network
@@ -25,16 +26,15 @@ class Network:
         self.current_time = 0
         self.is_running = False
 
-    def create_flow(self, size, source, destination, spawn_time):
-        flow = Flow(size, source, destination, spawn_time,
+    def create_flow(self, size, source, destination, spawn_time, max_window):
+        flow = Flow(size, source, destination, spawn_time, max_window,
                     self.next_flow_id, self)
         self.flows[self.next_flow_id] = flow
         self.next_flow_id += 1
         return flow
 
-    def create_host(self, ip_address, max_window_size, link_connected=None):
-        host = Host(ip_address, link_connected, max_window_size,
-                    self.next_host_id, self)
+    def create_host(self, ip_address, link_connected=None):
+        host = Host(ip_address, link_connected, self.next_host_id, self)
         self.hosts[self.next_host_id] = host
         self.next_host_id += 1
         return host
@@ -80,6 +80,6 @@ class Network:
             for _, flow in self.flows.items():
                 flow.run(self.current_time)
 
-            self.current_time += self.TIMESTEP
+            self.current_time += TIMESTEP
 
     

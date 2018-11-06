@@ -1,18 +1,9 @@
-
+from utils import (
+    DEBUG, RENO, TIMESTEP,
+    PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
+)
 
 class Packet:
-
-	# Static variables for the class. 
-	# These will represent the different packet types. 
-	PACKET = 0
-	ACK = 1
-	MESSAGE = 2 
-
-	PACKET_SIZE = 1024
-	ACK_SIZE = 64
-	# TODO: determine how large our messages should be
-	MESSAGE_SIZE = 32
-
 
 	def __init__(self, num_bits, packet_type, source, destination, 
 		time_spawn, in_transit, curr_pos, id, network,

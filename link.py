@@ -1,4 +1,8 @@
 from collections import deque
+from utils import (
+    DEBUG, RENO, TIMESTEP,
+    PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
+)
 
 
 class Link:
@@ -107,7 +111,7 @@ class Link:
         # Number of bits we are planning to send
         bits_planning = 0
         # Number of more bits we can send at this time
-        bits_capacity = self.capacity * self.network.TIMESTEP
+        bits_capacity = self.capacity * TIMESTEP
         for _, packet in self.traveling_packets:
             bits_capacity -= packet.num_bits
         while len(self.buffer) > 0:
