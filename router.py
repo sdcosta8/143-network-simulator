@@ -22,9 +22,9 @@ class Router:
         # that the router is waiting to send 
         self.outgoing_packets = deque()        
         
-        # Initialize the recieved packets queue. This will hold all the packets
-        # that the router recieves
-        self.recieved_packets = deque()        
+        # Initialize the received packets queue. This will hold all the packets
+        # that the router receives
+        self.received_packets = deque()        
         
         # Initialize the routing table as a dictionary so that we can store the
         # next node or link to take asas a value and the destination ip address
@@ -92,15 +92,15 @@ class Router:
                 print("sent packet = " + packet.id + "of flow id = " + packet.id)
                 print("from router " +  self.id)
         
-    def recieve_packet(self, pkt):
+    def receive_packet(self, pkt):
         '''
-        This function will have the router recieve a packet and then forward it
+        This function will have the router receive a packet and then forward it
         to its next destination.
         '''
 
         # This function will be called when a packet arrives at a router
     
-        # Check if the recieved packet is a message, we want to basically check
+        # Check if the received packet is a message, we want to basically check
         # the minimum spanning tree protocol and send a new packet
         if pkt.packet_type == 2:
             #### Get the previous link that the pkt was sent from

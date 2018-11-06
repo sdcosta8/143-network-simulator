@@ -66,11 +66,10 @@ class Packet:
         # be calculated outside of the packet class 
         self.time_next_move = None
         
-        # This references the packet that the acknowledgment is in 
-        # regards to
+        # If self is ack, reference the original packet
         self.acknowledgement_of_pkt = acknowledgement_of_pkt
         
-        # Time in recieved packets queue
+        # Time in received packets queue
         self.time_in_queue = None
 
         # Field to keep track of current time

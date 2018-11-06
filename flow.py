@@ -53,8 +53,12 @@ class Flow:
         # Field to keep track of current time
         self.curr_time = None
 
-    # Used to break the flow into packets
+
     def construct_packets(self):
+        '''
+        Break the flow into packets
+        Return a list of packets
+        '''
         assert(self.size % PACKET_SIZE == 0)
 
         packets = []
@@ -74,23 +78,16 @@ class Flow:
     
     def initialize_flow(self):
         '''
-        When the flow spawn time equals the current time, we want to 
-        intialize the flow by splitting the flow into packets and then
-        placing the packets in the corresponding host's outgoing queue,
-        so that they can be sent.
+        Construct packets, update source host on status of new outgoing packets
+        and this flow
+        Called when the flow spawn time equals the current time
         '''
         # Split up the flow into packets
-        packets = self.construct_packets()
-        
-        # Populate the flow with the packets that it is made up of
-        self.packets = packets
-        
-        # Place packets returned by the flow into the
-        # outgoing_packets queue
+        self.packets = self.construct_packets()
         
         # Need a for loop because don't want to append a list to another
         # list and create a list of lists
-        for packet in packets:	
+        for packet in self.packets:
             self.source.outgoing_packets.append(packet)
         
         # We want to remove the flow from the waiting flow array of the 
@@ -119,12 +116,11 @@ class Flow:
         # TODO
         pass
 
-    # TODO: Is this for the host???
     # Window size protocol function
     def window_protocol_decrease(self):
         ''' 
         This function will be called from the host, when it experiences
-        a timeout for a packet that belongs to this flow or it recieves
+        a timeout for a packet that belongs to this flow or it receives
         3 of the same acknowlegdments. Based on the protocol, the window 
         size of the flow will be updated appropriately. This will be 
         implemented, when we decide which protocols to use for each flow
@@ -140,40 +136,48 @@ class Flow:
         
     def update_window_size_increase(self):
         ''' 
-        This function will be called from the host, when it recieves and 
+        This function will be called from the host, when it receives and 
         acknowledgement and wants to increase the window size 
         '''	
+        pass
 
-    def all_packets_recieved(self):
+    def all_packets_received(self):
         '''
-        This function will have the flow check if all of its packets are 
-        recieved
+        Check if all packets are in finished_packets (ack received)
+        Return True/False
         '''
-        packets_recieved_ack = list(set(self.finished_packets))
+        # Get unique list of finished packets
+        packets_received_ack = list(set(self.finished_packets))
         
-        # Sort the list of recieved packets in place by their packet number
-        packets_recieved_ack.sort(key=lambda x: x.packet_no, reverse=True)
+        # Sort the list of received packets in place by their packet number
+        packets_received_ack.sort(key=lambda x: x.packet_no, reverse=True)
         
-        index = 0
-        # check if all the packet numbers are in the correct order
-        for i in range(1, self.num_packets + 1):
-            if len(packets_recieved_ack) > index:
-                if DEBUG:
-                    print("packet no {0} is missing of \
-                    flow no {1}").format(i, self.id)
-                return False
-            if packets_recieved_ack[index].packet_num != i:
-                if DEBUG:
-                    print("packet no {0} is missing of \
-                    flow no {1}").format(i, self.id)
-                return False
-            index += 1
-        
-        # All the packets were recieved
+        # Check if all the packets are received
+        all_received = self.num_packets == len(packets_received_ack)
         if DEBUG:
-            print("All packets for flow no {1} are recieved")\
-                 .format(i, self.id)		
-        return True
+            # Find the packets missing (1 indexed)
+            missed_pkt_num =[]
+            i = 0
+            for num in range(1, self.num_packets+1):
+                if (len(packets_received_ack) <= i or 
+                packets_received_ack[i].packet_num != num):
+                    missed_pkt_num.append(num)
+                else:
+                    i += 1
+            # Check if the result is consistent with quick length check
+            if (len(missed_pkt_num) == 0) != all_received:
+                print("ALL RECEIVED DOES NOT AGREE WITH TRAVERSAL CHECK.")
+            
+            # Print info about missed packets
+            if len(missed_pkt_num) > 0:
+                print("packet no", end=" ")
+                for num in missed_pkt_num:
+                    print(num, end=" ")
+                print("is missing of flow no", self.id)
+            else:
+                print("All packets for flow no", self.id, "are received")
+        
+        return all_received
         
     def run(self, curr_time):
         '''
@@ -185,11 +189,11 @@ class Flow:
         # Update internal clock
         self.curr_time = curr_time
         
-        # Check if a flow should be initialized
-        if (curr_time >= self.time_spawn) and (self.spawned == False):
+        # Check if this flow should be initialized
+        if (self.curr_time >= self.time_spawn) and (self.spawned == False):
             self.initialize_flow()
             self.spawned = True
-
+        
         # TODO: Calculate window size W based on congestrion control protocol
         
         

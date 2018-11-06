@@ -76,6 +76,8 @@ class Network:
         '''
         Call and run all components of the network
         '''
+        self.is_running = True
+        # TODO: Need a stopping mechanism
         while self.is_running:
             for _, flow in self.flows.items():
                 flow.run(self.curr_time)

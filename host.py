@@ -14,16 +14,15 @@ class Host:
         # Reference to the network object
         self.network = network
 
-        # Initialize the recieved packets queue. This will hold all the packets
-        # that the host recieves
-        self.recieved_packets = deque()
+        # Initialize the received packets queue. This will hold all the packets
+        # that the host receives
+        self.received_packets = deque()
         
         # Initialize the outgoing packets queue. This will hold all the packets
         # that the host needs to send, which will be based on the window size
         self.outgoing_packets = deque()
         
-        # Initialize the sent packets queue. This will hold all the packets
-        # that are sent but have not recieved acknowledgements
+        # All packets that are sent but have not received acknowledgements
         self.sent_packets = deque()
         
         # The link object that the host is connected to         
@@ -31,15 +30,14 @@ class Host:
     
         self.outgoing_link = None
     
-        # Initialize the recieved acknowledgements queue. This will hold all 
+        # Initialize the received acknowledgements queue. This will hold all 
         # the acknowledgements of the packets that this host sent, so it can 
-        # keep track of the acknowledgements that it recieves from other hosts
-        self.recieved_ack = deque()      
+        # keep track of the acknowledgements that it receives from other hosts
+        self.received_ack = deque()      
         
-        # Initialize the flows list. This will hold all 
-        # the current flows that originate from this host
-        self.flows = []    
-    
+        # Active flows
+        self.flows = []
+        # Flows that have not been spawned
         self.waiting_flows = []
     
         # This is the time that a host will wait for an acknowledgement to
@@ -51,86 +49,71 @@ class Host:
         self.curr_time = None
     
     
-    def recieve_packet(self, pkt):
+    def receive_packet(self, pkt):
         '''
-        This function will take in a packet that arrives from the link and then
-        updates the queues depending on if the packet recieved is part of a flow
-        or an acknowledgement. If it is not an acknowledgement the host will 
-        send an acknowledgement back.
+        Take a packet/ack that arrives from the link, update the queues
+        Send an ack back if a packet is received
         '''
-        
-        # Recieve packet and see if it is acknowledgement
-        if pkt.packet_type == 1:
-            # This means that the packet that the host recieves is an ack
-            
-            # First we want to check that the ack is not associated with a 
-            # timeout, which is something that should probably never happen if 
-            # the timeout is set accurately
-            if pkt.acknowledgement_of_pkt not in self.sent_packets:
-                # This acknowledgement corresponds to a dropped packet and we
-                # just want to ignore it and move on
+        # See if it is acknowledgement
+        if pkt.packet_type == ACK:
+            orig_pkt = pkt.acknowledgement_of_pkt
+
+            # Find the index of original packet in sent packets
+            try:
+                index = self.sent_packets.index(orig_pkt)
+            except ValueError:
+                # When a timeout happens, sent packets is cleared.
+                # If the ack is for a packet cleared during a timeout, ignore
                 if DEBUG:
-                    print(" recieved a dropped pkt ack for {0} in_flow {1}".\
-                        format(pkt.id, pkt.flow.id))
+                    print(" received a dropped pkt ack for {0} in_flow {1}".
+                          format(pkt.id, pkt.flow.id))
                 return
-            
-            # Remove the corresponding packet from the sent packet queue
-            for index in range(len(self.sent_packets)):
-                # check if the packet objects are the same to find the packet 
-                # that the acknowledgement references
-                if self.sent_packets[index] == pkt.acknowledgement_of_pkt:
-                    if DEBUG:
-                        print(" acknowlegement for pkt.id {0} and pkt.no {1} \
-                        in_flow {2} recieved".format(pkt.id, pkt.no, pkt.flow.id))
-                    
-                    # remove the packet from the sent queue
-                    del self.sent_packets[index]
-                    
-                    # add packet to the recieved acknowledgement queue
-                    #### I dont think we need this queue tbh ####
-                    self.recieved_ack.append(pkt.acknowledgement_of_pkt)
-                    
-                    # Now we want to update the flow information
-                    
-                    # Add the packet to the finished round trip packets 
-                    pkt.acknowledgement_of_pkt.flow.finished_packets.append(
-                        pkt.acknowledgement_of_pkt)
-                    
-                    # if RENO:	
-                    #     # This will come in handy for reno and other protocols to
-                    #     # see if we have 3 duplicate ack
-                    #     if (pkt.acknowledgement_of_pkt.packet_no == 
-                    #         (flow.finished_packets.next_expected_packet_no + 1)):
-                    #         ## TODO implement protocols
-                    #         pass
-                    
-                    # Update the window size of the successfully recieved packet 
-                    # of the flow
-                    pkt.acknowledgement_of_pkt.flow.update_window_size_increase()
-                    
-                    # check if this packet is the last packet sent and all the
-                    # other packets in the flow have been recieved
-                    if pkt.acknowledgement_of_pkt.flow.all_packets_recieved():
-                    
-                        # Change the value to show that flow successfully sent
-                        pkt.acknowledgement_of_pkt.flow.RT_success = True
-                        
-                        if DEBUG:
-                            print (" flow no {0} has finished sending".format(\
-                                pkt.acknowledgement_of_pkt.flow.id))
-        
-        # Check if the recieved object is a packet
-        elif pkt.packet_type == 0:
+
             if DEBUG:
-                print ( "host no {0} recieved packet number {1} of flow {2} "\
+                print(" acknowlegement for pkt.id {0} and pkt.no {1} \
+                in_flow {2} received".format(pkt.id, pkt.no, pkt.flow.id))
+
+            # Remove the packet from the sent queue
+            del self.sent_packets[index]
+                    
+            # add packet to the received acknowledgement queue
+            #### I dont think we need this queue tbh ####
+            self.received_ack.append(orig_pkt)
+            
+            # Add the packet to the finished round trip packets of the flow
+            orig_pkt.flow.finished_packets.append(orig_pkt)
+            
+            if RENO:
+                # This will come in handy for reno and other protocols to
+                # see if we have 3 duplicate ack
+                if (orig_pkt.packet_no == 
+                    orig_pkt.flow.next_expected_packet_no + 1):
+                    ## TODO implement protocols
+                    pass
+            
+            # Update the window size of the flow
+            orig_pkt.flow.update_window_size_increase()
+            
+            # Check if all the packets in the flow have been received
+            if orig_pkt.flow.all_packets_received():
+                # Change the value to show that flow successfully sent
+                orig_pkt.flow.RT_success = True
+                if DEBUG:
+                    print(" flow no {0} has finished sending".format(\
+                        orig_pkt.flow.id))
+        
+        # Check if the received object is a packet
+        elif pkt.packet_type == PACKET:
+            if DEBUG:
+                print (" host no {0} received packet number {1} of flow {2} "\
                         + " from host no {3}").format(self.id, pkt.packet_no, \
                                                     pkt.flow, pkt.source)
             
             # Create an acknowledgement for the packet 
             ack_packet = self.network.create_packet(
-                        ACK_SIZE, ACK,
-                        pkt.destination, pkt.source, self.curr_time,
-                        self, acknowledgement_of_pkt=pkt)	    
+                ACK_SIZE, ACK,
+                pkt.destination, pkt.source, self.curr_time,
+                self, acknowledgement_of_pkt=pkt)	    
             
             # Put this acknowledgment into the outgoing packets queue of the 
             # host to be sent
@@ -146,17 +129,17 @@ class Host:
                     format(pkt.packet_no, pkt.flow, self.id)		
             
         
-        # Check if the recieved object is a message
+        # Check if the received object is a message
         elif pkt.packet_type == 2:
             ### I dont think we need to do anything with the message if a 
-            ### host recieves it because it is important for the routers and
+            ### host receives it because it is important for the routers and
             ### links only I thought.
-            return 	    
+            return
         
         else:
             if DEBUG:
-                print ("host id {0} recieved incorrect packet type").\
-                    format(self.id)	    
+                print ("host id {0} received incorrect packet type {1}").\
+                    format(self.id, pkt.packet_type)	    
         
     
     def send_packets(self):
@@ -174,6 +157,10 @@ class Host:
             
             # Check the flows current window size and see if it is
             # possible to send more packets	
+            #### TODO (?)
+            #### instead of comparing window to max window
+            #### we should compare the number of sent packets to current window
+            #### max window should only be relevant to window control protocol
             if flow_of_packet.current_window <= flow_of_packet.max_window:
             
                 # Remove the packet from outgoing queue because it can be sent
@@ -252,9 +239,9 @@ class Host:
     def check_for_three_ack(self):
         '''
         This function we want to see if a three of the same acknowledgements are
-        recieved for protocols like Reno. 
-        We will just check when an acknowledgment is recieved that the last 3 
-        acknowledgments recieved for a given flow are not the same and if they 
+        received for protocols like Reno. 
+        We will just check when an acknowledgment is received that the last 3 
+        acknowledgments received for a given flow are not the same and if they 
         are we should perform the appropriate update to the window size for our
         protocol.
         '''    
