@@ -32,7 +32,8 @@ class Router:
         self.routing_table = {}
         
         # Initialize a list of links that the router is connected to
-        self.links = []
+        self.outgoing_links = []
+        self.incoming_links = []
         
         # Initalize the current number of packets in the buffer
         self.current_number_pkt_buffer = len(self.outgoing_packets)
@@ -45,6 +46,9 @@ class Router:
 
         # Field to keep track of current time
         self.curr_time = None
+
+        # list of neighboring hosts/routers
+        self.neighbors = []
     
         
     def update_routing_table(self):

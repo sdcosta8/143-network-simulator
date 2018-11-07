@@ -1,6 +1,8 @@
 import sys
+import json
 import matplotlib.pyplot as plt
 from network import Network
+from host import Host
 from utils import (
     DEBUG, MB, KB, Mb, RENO, TIMESTEP
 )
@@ -45,105 +47,67 @@ def add_graph(time_dicts, last_time, y_label, series_labels):
 
 
 if __name__ == '__main__':
-    args = sys.argv[1:]
+    filename = sys.argv[1]
     network = Network()
 
-    # The user should pass in the type of object followed 
-    # by the number of them that they want to initialize. They 
-    # will then be prompted to specify the various fields 
-    # associated with each object. 
-    i = 0
-    while i < len(args):
-        num_objects = int(args[i + 1])
-        for j in range(num_objects):
-            if args[i] == "Hosts":
-                network.create_host(None, None)
+    with open(filename) as f:
+        net_data = json.load(f)
 
-            if args[i] == "Routers":
-                network.create_router(None)
+    for host in net_data["hosts"]:
+        # Note: we will add the links to the host when we initialize links
+        network.create_host(host["ip"], int(host["id"]))
 
-            if args[i] == "Links":
-                network.create_link(None, None, None, None, None)
+    for router in net_data["routers"]:
+        # Note: we will add the links to the router when we initialize links
+        network.create_router(router["ip"], int(router["id"]))
 
-            if args[i] == "Flows":
-                network.create_flow(None, None, None, None, None)
-        i += 2
+    for flow in net_data["flows"]:
+        src = network.hosts[int(flow["source"])]
+        dest = network.hosts[int(flow["dest"])]
+        new_flow = network.create_flow(\
+            convert_to_bits(float(flow["data_amount"]), MB), src, dest, \
+            float(flow["start_time"]), int(flow["max_window_size"]), \
+                int(flow["id"]))
+        src.flows.append(new_flow)
 
-    # TODO: write functions to convert units to bits and seconds
+    # Keep track of this so we can add links going the opposite direction
+    highest_link_id = max([int(link["id"]) for link in net_data["links"]])
+    for link in net_data["links"]:
 
-    # Get the true values for the links
-    links_list = list(network.links.items())
-    for link_id, link in links_list:
-        print("Enter parameters for link " + str(link_id) + ".")
-        rate = convert_to_bits(float(input("Link Rate (Mbps): ")), Mb)
-        delay = convert_to_seconds(float(input("Link Delay (ms): ")))
-        buff = convert_to_bits(float((input("Link Buffer Size (KB): "))), KB)
-        source = input("Connection 1. Input the type of node (H or R) and its id. (Ex: H1): ")
-        sink = input("Connection 2. Input the type of node (H or R) and its id. (Ex: R2): ")
-
-        if source[0] == "H":
-            source_ref = network.hosts[int(source[1:])]
+        if link["source"][0] == "H":
+            src = network.hosts[int(link["source"][1])]
         else:
-            source_ref = network.routers[int(source[1:])]
+            src = network.routers[int(link["source"][1])]
 
-        if sink[0] == "H":
-            sink_ref = network.hosts[int(sink[1:])]
+        if link["sink"][0] == "H":
+            sink = network.hosts[int(link["sink"][1])]
         else:
-            sink_ref = network.routers[int(sink_ref[1:])]
+            sink = network.routers[int(link["sink"][1])]
 
-        link.capacity = rate
-        link.connection1 = source_ref
-        link.connection2 = sink_ref
-        link.queue_capacity = buff
+        new_link_1 = network.create_link(src, sink, \
+            convert_to_bits(float(link["buff_size"]), KB), \
+            convert_to_bits(float(link["link_rate"]), Mb), \
+            convert_to_seconds(float(link["prop_delay"])), int(link["id"]))
+        new_link_2 = network.create_link(sink, src, \
+            convert_to_bits(float(link["buff_size"]), KB), \
+            convert_to_bits(float(link["link_rate"]), Mb), \
+            convert_to_seconds(float(link["prop_delay"])), highest_link_id + 1)
+        highest_link_id += 1
 
-        # TODO: should the cost be the delay?
-        link.static_cost = delay
-
-        # We should also create a second link with the same properties between
-        # the source and sink
-        new_link = network.create_link(sink_ref, source_ref, buff, rate, delay)
-
-        # Make sure the nodes also reference the links
-        source_ref.incoming_link = link
-        source_ref.outgoing_link = new_link
-        sink_ref.incoming_link = link
-        sink_ref.outgoing_link = new_link
-
-    # Get the parameters for hosts 
-    hosts_list = network.hosts.items()
-    for host in hosts_list:
-        host_id = host[0]
-        print("Enter parameters for host " + str(host_id) + ".")
-        ip = input("IP address: ")
-        host[1].ip = ip 
-        # TODO: max_window only for the flow???
-        # wind_size = float(input("Input Max Window Size: "))
-        # host[1].max_window = wind_size
-
-    # Get the parameters for routers
-    routers_list = network.routers.items()
-    for router in routers_list:
-        router_id = router[0]
-        print("Enter parameters for router " + str(router_id) + ".")
-        ip = input("IP address: ")
-        router[1].ip = ip
-
-    # Get the parameters for flows
-    flows_list = network.flows.items()
-    for flow in flows_list:
-        flow_id = flow[0]
-        print("Enter parameters for flow " + str(flow_id) + ".")
-        size = convert_to_bits(float(input("Data Amount (MB): ")), MB)
-        start_time = float(input("Flow Start Time (s): "))
-        source = int(input("ID of Flow Source: "))
-        dest = int(input("ID of Flow Destination: "))
-        source_ref = network.hosts[source]
-        dest_ref = network.hosts[dest]
-        flow[1].size = size
-        flow[1].source = source_ref
-        flow[1].destination = dest_ref
-        flow[1].time_spawned = start_time
-        source_ref.flows.append(flow[1])
+        if isinstance(src, Host):
+            src.outgoing_link = new_link_1
+            src.incoming_link = new_link_2
+        else:
+            src.outgoing_links.append(new_link_1)
+            src.incoming_links.append(new_link_2) 
+            src.neighbors.append(sink)
+        if isinstance(sink, Host):
+            sink.outgoing_link = new_link_2
+            sink.incoming_link = new_link_1
+        else:
+            sink.outgoing_links.append(new_link_2)
+            sink.incoming_links.append(new_link_1) 
+            sink.neighbors.append(src)
 
 
     # In Debug mode, we want to print out all the fields we set at initialization
@@ -176,8 +140,6 @@ if __name__ == '__main__':
             print("    ID of Flows from Host:")
             for flow in host[1].flows:
                 print("    " + str(flow.id))
-            # max_window only for the flow???
-            # print("    Max Window Size: " + str(host[1].max_window))
 
         routers_list = list(network.routers.items())
         if (len(routers_list) > 0):
@@ -187,9 +149,16 @@ if __name__ == '__main__':
             router_id = router[0]
             print("Printing out Fields for Router " + str(router_id) + ".")
             print("    IP Address: " + str(router[1].ip))
-            print("    ID of Links to/from Router:")
-            for link in router[1].links:
+            print("    IDs of Outgoing Links:")
+            for link in router[1].outgoing_links:
                 print("    " + str(link.id))
+            print("    IDs of Incoming Links:")
+            for link in router[1].incoming_links:
+                print("    " + str(link.id))
+            print("    IP Addresses of Neighbors:")
+            for neighbor in router[1].neighbors:
+                print("    " + str(neighbor.ip))
+
 
         flows_list = list(network.flows.items())
         if (len(flows_list) > 0):
@@ -201,9 +170,10 @@ if __name__ == '__main__':
             print("    Number of Bits: " + str(flow[1].size))
             print("    Source IP Address: " + str(flow[1].source.ip))
             print("    Destination IP Address: " + str(flow[1].destination.ip))
-            print("    Time Spawned " + str(flow[1].time_spawned))
+            print("    Time Spawned " + str(flow[1].time_spawn))
+            print("    Max Window Size: " + str(flow[1].max_window))
 
-
+'''
     # Start the network! 
     network.run_network()
 
@@ -230,16 +200,5 @@ if __name__ == '__main__':
     # Graph the link rates
     add_graph(link_rate_dicts, network.curr_time, "Link Rate (bps)", \
         link_order)
-
-
-
-
-
-            
-
-            
-
-
-
-
+'''
 
