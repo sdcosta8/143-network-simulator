@@ -8,7 +8,7 @@ class Packet:
     def __init__(self, num_bits, packet_type, source, destination, 
         time_spawn, in_transit, curr_pos, id, network,
         flow=None, packet_info=None, packet_no=None, last_packet=None, 
-            acknowledgement_of_pkt = None):
+        expecting_packet=None):
 
         # The id of the packet represented as an integer
         self.id = id
@@ -45,6 +45,9 @@ class Packet:
         # packets won't have a flow id 
         self.flow = flow
 
+        # If self is ack, the next packet the receiver is expecting
+        self.expecting_packet = expecting_packet
+
         # For message passing, this will be the information used for the 
         # shortest path algorithm represented as an array. For other packet 
         # types, this is None
@@ -65,9 +68,6 @@ class Packet:
         # The next time at which we should do something with the packet. This should 
         # be calculated outside of the packet class 
         self.time_next_move = None
-        
-        # If self is ack, reference the original packet
-        self.acknowledgement_of_pkt = acknowledgement_of_pkt
         
         # Time in received packets queue
         self.time_in_queue = None

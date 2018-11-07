@@ -28,78 +28,186 @@ class Flow:
         # Reference to the network object
         self.network = network
 
-        # 0 if packets from the flow are still in transit. 1 if the 
-        # whole round trip of the flow is done
-        self.RT_success = 0
+        # Ack received, list of repeated expected next packets
+        # When the length is 3, timeout and reset
+        self.expecting_packet = 0
+        self.repeated_ack_count = 0
 
-        # A list of packets that have successfully made the round trip
-        self.finished_packets = []
-
-        # The number of packets for the flow
-        self.num_packets = 0
-
-        # A list of packets for the flow
-        self.packets = []
+        # Reset to expecting_packet - 1 when we receive 3 repeated ack
+        self.next_packet_to_send = 1
+        # All packets that are sent but have not received acknowledgements
+        self.sent_times = {}
         
+        # The number of packets for the flow
+        # pkt.last_packet is True if its num is this num_packets
+        self.num_packets = 0
+        
+        # The current window size
         self.current_window = 0
+
+        # This is the time that a host will wait for an acknowledgement to
+        # come back after it sends a packet. If this time is exceeded, the host
+        # will resend the packet
+        self.maximum_wait_time = 15
         
         # This value tells us if the flow has been spawned
         self.spawned = False
-        
-        # This will be the packet that the flow expects next, which will
-        # help with future protocols
-        self.next_expected_packet_no = 0
+
+        # If all packets are acknowledged by receiver
+        self.finished = False
 
         # Field to keep track of current time
         self.curr_time = None
 
-
-    def construct_packets(self):
-        '''
-        Break the flow into packets
-        Return a list of packets
-        '''
-        assert(self.size % PACKET_SIZE == 0)
-
-        packets = []
-        self.num_packets = self.size / PACKET_SIZE
-
-        # Index the packets starting at 1
-        for i in range(1, self.num_packets + 1):
-            new_packet = self.network.create_packet(
-                PACKET_SIZE, PACKET,
-                self.source, self.destination, 0,
-                self.source, flow=self, packet_no=i)
-            packets.append(new_packet)
-
-        # Set the last packet's flag
-        packets[len(packets) - 1].last_packet = 1
-        return packets
     
     def initialize_flow(self):
         '''
-        Construct packets, update source host on status of new outgoing packets
-        and this flow
-        Called when the flow spawn time equals the current time
+        Called when the it's time to spawn
         '''
-        # Split up the flow into packets
-        self.packets = self.construct_packets()
-        
-        # Need a for loop because don't want to append a list to another
-        # list and create a list of lists
-        for packet in self.packets:
-            self.source.outgoing_packets.append(packet)
-        
-        # We want to remove the flow from the waiting flow array of the 
-        # host and place it into the active flow object
-        try:
-            self.source.waiting_flows.remove(self)
-            self.source.flows.append(self)
-            if DEBUG:
-                print(" removed flow id:" + self.id)
-        except ValueError:
-            print(" ERROR: FLOW NOT FOUND IN THE WAITING QUEUE")
+        self.spawned = True
+    
+
+    def send_packets(self):
+        '''
+        This function will be called at every iteration of the global timer to
+        see if there are any packets that can be sent by the flow.
+        '''
+        # See if any packets can be sent. The cutoff is exclusive
+        packet_cutoff = self.expecting_packet + self.current_window
+        while (self.next_packet_to_send < packet_cutoff and
+               self.next_packet_to_send <= self.num_packets):
+            # We can send more packets
+            pkt = self.network.create_packet(
+                PACKET_SIZE, PACKET,
+                self.source, self.destination, 0,
+                self.source, flow=self, packet_no=self.next_packet_to_send
+            )
+            # If it is the last packet, mark it as last
+            if self.next_packet_to_send == self.num_packets:
+                pkt.last_packet = True
             
+            # Send the packet by putting it in the link
+            self.source.outgoing_link.append(pkt)
+            # Record sent time for this packet
+            self.sent_times[pkt.packet_no] = self.curr_time
+            # Update the flow's info about next packet to send
+            self.next_packet_to_send += 1
+
+            if DEBUG:
+                print("sent packet", pkt.id, "of flow id", self.id)
+
+
+    def receive_packet(self, pkt):
+        '''
+        Take a packet/ack that arrives from the link, update the queues
+        Send an ack back if a packet is received
+        '''
+        # See if it is acknowledgement
+        if pkt.packet_type == ACK:
+            # Add the ack to the flow's ack info
+            if self.expecting_packet == pkt.expecting_packet:
+                self.repeated_ack_count += 1
+            else:
+                self.expecting_packet = pkt.expecting_packet
+                self.repeated_ack_count = 0
+                if (self.expecting_packet - 1) in self.sent_times:
+                    del self.sent_times[self.expecting_packet - 1]
+            if DEBUG:
+                print(" acknowlegement for pkt no", pkt.expecting_packet - 1,
+                      "flow", self.id,  "received")
+
+            if RENO:
+                # This will come in handy for reno and other protocols to
+                # Timeout if we have 3 duplicate ack
+                if self.repeated_ack_count >= 3:
+                    ## TODO implement protocols
+                    pass
+                else:
+                    # Increase window size by 1
+                    self.current_window += 1
+
+            # Check if all the packets in the flow have been received
+            if self.expecting_packet == self.num_packets + 1:
+                self.finished = True
+                if DEBUG:
+                    print(" flow no", self.id, "has finished sending")
+
+        # Check if the received object is a packet
+        elif pkt.packet_type == PACKET:
+            if DEBUG:
+                print(" host no {0} received packet number {1} of flow {2} "
+                      + " from host no {3}").format(self.id, pkt.packet_no,
+                                                    pkt.flow, pkt.source)
+
+            # Create an acknowledgement for the packet
+            ack_packet = self.network.create_packet(
+                ACK_SIZE, ACK,
+                pkt.destination, pkt.source, self.curr_time,
+                self, expecting_packet=pkt.packet_no+1)
+
+            # Send the packet by putting it in the link
+            self.destination.outgoing_link.append(ack_packet)
+
+            if DEBUG:
+                print("acknowledgement packet for pkt no {0} flow {1} was \
+                placed in host {2}'s  outgoing queue to be sent").\
+                    format(pkt.packet_no, self.id, self.destination.id)
+
+        # Check if the received object is a message
+        elif pkt.packet_type == 2:
+            ### I dont think we need to do anything with the message if a
+            ### host receives it because it is important for the routers and
+            ### links only I thought.
+            return
+
+        else:
+            if DEBUG:
+                print("flow id {0} received incorrect packet type {1}").\
+                    format(self.id, pkt.packet_type)
+
+
+    def check_for_timeouts(self):
+        '''
+        This function we want to see if a packet was dropped due to a timeout.
+        This will occur if the max waiting time of the host is greater than the
+        time delta of the time that the packet was sent at.
+        '''
+        # Go through the queue of sent packets and see if any of them have a
+        # time stamp ( time that they were sent - current time) that is greater
+        # than the max time stamp. If not, you want to update the time stamp for
+        # each package by incrementing it for the iteration and then moving to
+        # the next packet.
+
+        # If a packet in the queue has exceeded the timeout time, we want to
+        # remove it from the queue, and place it on the outgoing packets queue
+        # in order to be resent. We should also perform the appropriate update
+        # to the window size based on our protocol. We also want to mark
+        # somewhere that this packet has timed out for bookkeeping.
+
+        # Go through the packets in the queue and update their waiting times in
+        # the queue
+
+        for packet_no, sent_time in self.sent_times:
+            if self.curr_time - sent_time > self.maximum_wait_time:
+                # Resend this packet
+                pkt = self.network.create_packet(
+                    PACKET_SIZE, PACKET,
+                    self.source, self.destination, 0,
+                    self.source, flow=self, packet_no=packet_no
+                )
+                # If it is the last packet, mark it as last
+                if packet_no == self.num_packets:
+                    pkt.last_packet = True
+                # Send the packet by putting it in the link
+                self.source.outgoing_link.append(pkt)
+                # Record sent time for this packet
+                self.sent_times[packet_no] = self.curr_time
+                if DEBUG:
+                    print(" pkt no {0} flow {1} has timed out and was \
+                    placed in host {2}'s  outgoing queue to be sent").\
+                        format(packet_no, self.id , self.source.id)
+
+
     def calc_send_receive_rate(self):
         '''
         Calculated as the bits of the flow received over time?
@@ -141,43 +249,44 @@ class Flow:
         '''	
         pass
 
-    def all_packets_received(self):
-        '''
-        Check if all packets are in finished_packets (ack received)
-        Return True/False
-        '''
-        # Get unique list of finished packets
-        packets_received_ack = list(set(self.finished_packets))
+    # def all_packets_received(self):
+    #     '''
+    #     Check if all packets are in finished_packets (ack received)
+    #     Return True/False
+    #     '''
+    #     return self.
+    #     # Get unique list of finished packets
+    #     packets_received_ack = list(set(self.finished_packets))
         
-        # Sort the list of received packets in place by their packet number
-        packets_received_ack.sort(key=lambda x: x.packet_no, reverse=True)
+    #     # Sort the list of received packets in place by their packet number
+    #     packets_received_ack.sort(key=lambda x: x.packet_no, reverse=True)
         
-        # Check if all the packets are received
-        all_received = self.num_packets == len(packets_received_ack)
-        if DEBUG:
-            # Find the packets missing (1 indexed)
-            missed_pkt_num =[]
-            i = 0
-            for num in range(1, self.num_packets+1):
-                if (len(packets_received_ack) <= i or 
-                packets_received_ack[i].packet_num != num):
-                    missed_pkt_num.append(num)
-                else:
-                    i += 1
-            # Check if the result is consistent with quick length check
-            if (len(missed_pkt_num) == 0) != all_received:
-                print("ALL RECEIVED DOES NOT AGREE WITH TRAVERSAL CHECK.")
+    #     # Check if all the packets are received
+    #     all_received = self.num_packets == len(packets_received_ack)
+    #     if DEBUG:
+    #         # Find the packets missing (1 indexed)
+    #         missed_pkt_num =[]
+    #         i = 0
+    #         for num in range(1, self.num_packets+1):
+    #             if (len(packets_received_ack) <= i or 
+    #             packets_received_ack[i].packet_num != num):
+    #                 missed_pkt_num.append(num)
+    #             else:
+    #                 i += 1
+    #         # Check if the result is consistent with quick length check
+    #         if (len(missed_pkt_num) == 0) != all_received:
+    #             print("ALL RECEIVED DOES NOT AGREE WITH TRAVERSAL CHECK.")
             
-            # Print info about missed packets
-            if len(missed_pkt_num) > 0:
-                print("packet no", end=" ")
-                for num in missed_pkt_num:
-                    print(num, end=" ")
-                print("is missing of flow no", self.id)
-            else:
-                print("All packets for flow no", self.id, "are received")
+    #         # Print info about missed packets
+    #         if len(missed_pkt_num) > 0:
+    #             print("packet no", end=" ")
+    #             for num in missed_pkt_num:
+    #                 print(num, end=" ")
+    #             print("is missing of flow no", self.id)
+    #         else:
+    #             print("All packets for flow no", self.id, "are received")
         
-        return all_received
+    #     return all_received
         
     def run(self, curr_time):
         '''
@@ -190,11 +299,14 @@ class Flow:
         self.curr_time = curr_time
         
         # Check if this flow should be initialized
-        if (self.curr_time >= self.time_spawn) and (self.spawned == False):
-            self.initialize_flow()
-            self.spawned = True
+        if self.spawned == False:
+            if self.curr_time >= self.time_spawn:
+                self.initialize_flow()
         
-        # TODO: Calculate window size W based on congestrion control protocol
+        if not self.finished:
+            # Check to send packets
+            self.send_packets()
+            self.check_for_timeouts()
         
         
             
