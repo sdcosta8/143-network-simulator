@@ -47,6 +47,9 @@ class Link:
 
 
         self.queue_capacity = buffer_size
+
+        # Field to keep track of current time
+        self.curr_time = 0
         
 
 
@@ -66,13 +69,15 @@ class Link:
             if buffer_used < self.queue_capacity:
                 self.buffer.append(pkt)
             else:
-                # TODO: drop the packet/ smth else based on protocal
-                pass
+                # We don't need to do anything with the packet reference, but we 
+                # should keep track that a packet was dropped at this timestamp
+                if self.curr_time in self.network.packet_loss:
+                    self.network.packet_loss[curr_time] += 1
+                else:
+                    self.self.network.packet_loss[curr_time] = 1
             pkt.curr_pos = self
         # TODO: Update the congestion and dynamic cost pf the link and bit rate? 
 
-        # Field to keep track of current time
-        self.curr_time = None
 
     def send_packet(self, packet):
         '''

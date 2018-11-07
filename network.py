@@ -25,6 +25,7 @@ class Network:
         self.next_packet_id = 0
         self.curr_time = 0
         self.is_running = False
+        self.packet_loss = {}
 
     def create_flow(self, size, source, destination, spawn_time, max_window):
         flow = Flow(size, source, destination, spawn_time, max_window,
