@@ -50,6 +50,17 @@ class Link:
 
         # Field to keep track of current time
         self.curr_time = 0
+
+        # Use this to keep track of the buffer occupancy over time. 
+        # Should map timestamp to number of packets
+        self.buffer_occupancy = {}
+
+        # Keep track of the packet loss in this link
+        self.packet_loss = {}
+
+        # Keep track of the link rates over time. this should be the 
+        # number of bits sent over the timestep
+        self.link_rates = {}
         
 
 
@@ -71,10 +82,7 @@ class Link:
             else:
                 # We don't need to do anything with the packet reference, but we 
                 # should keep track that a packet was dropped at this timestamp
-                if self.curr_time in self.network.packet_loss:
-                    self.network.packet_loss[curr_time] += 1
-                else:
-                    self.self.network.packet_loss[curr_time] = 1
+                self.network.packet_loss[curr_time] += 1
             pkt.curr_pos = self
         # TODO: Update the congestion and dynamic cost pf the link and bit rate? 
 
@@ -100,6 +108,12 @@ class Link:
         self.connection2.receive_packet(packet)
         packet.curr_pos = self.connection2
         # TODO: The dynamic cost of the link should be updated
+
+
+        # Link rate = total bits from packets so far + bits of this 
+        # packet / TIMESTEP
+        self.link_rates[curr_time] = ((self.link_rates[curr_time] * \
+            TIMESTEP) + packet.num_bits) / TIMESTEP
         
 
     def run(self, curr_time):
@@ -109,6 +123,8 @@ class Link:
         '''
         # Update internal clock
         self.curr_time = curr_time
+        self.packet_loss[curr_time] = 0
+        self.link_rates[curr_time] = 0 
 
         # Check traveling packets and see if any packet should arrive
         while len(self.traveling_packets) > 0:
@@ -135,6 +151,7 @@ class Link:
             # If we can, pop it off of the buffer and send this packet
             packet = self.buffer.popleft()
             self.send_packet(packet)
-            
+
+        self.buffer_occupancy[curr_time] = len(self.buffer)
 
 

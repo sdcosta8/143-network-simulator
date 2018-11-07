@@ -1,7 +1,8 @@
 import sys
+import matplotlib.pyplot as plt
 from network import Network
 from utils import (
-    DEBUG, MB, KB, Mb, RENO
+    DEBUG, MB, KB, Mb, RENO, TIMESTEP
 )
 
 def convert_to_bits(num, units):
@@ -16,6 +17,31 @@ def convert_to_bits(num, units):
 # Converts a number in ms to s
 def convert_to_seconds(ms):
     return ms * 0.001
+
+
+# Pass in a  list of dictionary where timestamps are 
+# mapped to rates, packet losses, etc.
+# The list will be length > 1 in a case where we need
+# to plot several series
+def add_graph(time_dicts, last_time, y_label, series_labels):
+    for i in range(len(time_dicts)):
+        time_dict = time_dicts[i]
+        series = series_labels[i]
+        x_axis = []
+        y_axis = []
+
+        time = 0
+        while time <= last_time:
+            y_axis.append(time_dict[time])
+            x_axis.append(time)
+            time += TIMESTEP
+
+        plt.plot(x_axis, y_axis, label=series)
+    plt.legend()
+    plt.xlabel('Time (secs)')
+    plt.ylabel(y_label)
+    plt.savefig(label + '.png')
+    plt.close
 
 
 if __name__ == '__main__':
@@ -176,6 +202,36 @@ if __name__ == '__main__':
             print("    Source IP Address: " + str(flow[1].source.ip))
             print("    Destination IP Address: " + str(flow[1].destination.ip))
             print("    Time Spawned " + str(flow[1].time_spawned))
+
+
+    # Start the network! 
+    network.run_network()
+
+    # Get the values for the calculations each link keeps track of 
+    links_list = network.links.items()
+    packet_loss_dicts = []
+    buffer_occ_dicts = []
+    link_rate_dicts = []
+    link_order = []
+    for element in links_list:
+        link_order.append("L" + str(element[0]))
+        packet_loss_dicts.append(element[1].packet_loss)
+        buffer_occ_dicts.append(element[1].buffer_occupancy)
+        link_rate_dicts.append(element[1].link_rates)
+
+    # Graph the buffer occupancies over time
+    add_graph(buffer_occ_dicts, network.curr_time, "Buffer Occupancy (pkts)", \
+        link_order)
+
+    # Graph the packet loss over time
+    add_graph(packet_loss_dicts, network.curr_time, "Packet Loss (pkts)", \
+        link_order)
+
+    # Graph the link rates
+    add_graph(link_rate_dicts, network.curr_time, "Link Rate (bps)", \
+        link_order)
+
+
 
 
 
