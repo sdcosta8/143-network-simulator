@@ -71,6 +71,3 @@ class Packet:
         
         # Time in received packets queue
         self.time_in_queue = None
-
-        # Field to keep track of current time
-        self.curr_time = None

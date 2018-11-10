@@ -69,8 +69,7 @@ class Flow:
         # Number of packets received over a particular time period
         self.num_packets_received = 0
 
-        self.packet_delays = {}
-
+        # Flow rate of the bits recived per time step
         self.flow_rates = {}
 
 
@@ -150,7 +149,7 @@ class Flow:
         # Check if the received object is a packet
         elif pkt.packet_type == PACKET:
             self.num_packets_received += 1
-            self.packet_delays[pkt.curr_time] = pkt.curr_time - pkt.time_spawn       
+            self.packet_delays[self.curr_time] = self.curr_time - pkt.time_spawn       
             if DEBUG:
                 print(" host no {0} received packet number {1} of flow {2} "
                       + " from host no {3}").format(self.id, pkt.packet_no,
