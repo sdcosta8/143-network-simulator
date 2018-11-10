@@ -66,7 +66,7 @@ if __name__ == '__main__':
         dest = network.hosts[int(flow["dest"])]
         new_flow = network.create_flow(\
             convert_to_bits(float(flow["data_amount"]), MB), src, dest, \
-            float(flow["start_time"]), int(flow["max_window_size"]), \
+            float(flow["start_time"]), int(flow["window"]), \
                 int(flow["id"]))
         src.flows.append(new_flow)
 
@@ -172,6 +172,9 @@ if __name__ == '__main__':
             print("    Destination IP Address: " + str(flow[1].destination.ip))
             print("    Time Spawned " + str(flow[1].time_spawn))
             print("    Max Window Size: " + str(flow[1].max_window))
+
+
+
 
 '''
     # Start the network! 

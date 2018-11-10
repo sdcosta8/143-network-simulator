@@ -16,7 +16,7 @@
             "start_time": "1",
             "source": "1",
             "dest": "2",
-            "max_window_size": "10"
+            "window": "1"
         }
     ],
     "hosts": [
