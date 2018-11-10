@@ -59,6 +59,21 @@ class Flow:
         # Field to keep track of current time
         self.curr_time = None
 
+        # Keep track of the window sizes over time 
+        self.window_size = {}
+
+        # keep track of the packet delays (time between spawning and arriving)
+        # at destination host
+        self.packet_delays = {}
+
+        # Number of packets received over a particular time period
+        self.num_packets_received = 0
+
+        self.packet_delays = {}
+
+        self.flow_rates = {}
+
+
     
     def initialize_flow(self):
         '''
@@ -134,6 +149,8 @@ class Flow:
 
         # Check if the received object is a packet
         elif pkt.packet_type == PACKET:
+            self.num_packets_received += 1
+            self.packet_delays[pkt.curr_time] = pkt.curr_time - pkt.time_spawn       
             if DEBUG:
                 print(" host no {0} received packet number {1} of flow {2} "
                       + " from host no {3}").format(self.id, pkt.packet_no,
@@ -307,6 +324,17 @@ class Flow:
             # Check to send packets
             self.send_packets()
             self.check_for_timeouts()
+
+        # TODO: fix this if we change name of max_window
+        self.window_size[curr_time] = self.max_window
+        if curr_time not in self.packet_delays:
+            self.packet_delays[curr_time] = 0
+
+
+        # TODO: decide on how often we want to record the flow rate
+        if self.curr_time % 1 == 0:
+            self.flow_rates[curr_time] = self.num_packets_received * PACKET_SIZE
+            self.num_packets_received = 0 
         
         
             

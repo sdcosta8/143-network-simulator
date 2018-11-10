@@ -54,8 +54,9 @@ def add_graph(time_dicts, last_time, y_label, series_labels):
 
         time = 0
         while time <= last_time:
-            y_axis.append(time_dict[time])
-            x_axis.append(time)
+            if time in time_dict:
+                y_axis.append(time_dict[time])
+                x_axis.append(time)
             time += TIMESTEP
 
         plt.plot(x_axis, y_axis, label=series)
@@ -228,5 +229,28 @@ if __name__ == '__main__':
     # Graph the link rates
     add_graph(link_rate_dicts, network.curr_time, "Link Rate (bps)", \
         link_order)
+
+    # Get the values for the calculations each flow keeps track of 
+    flow_list = network.flows.items()
+    wind_size_dicts = []
+    flow_rate_dicts = []
+    packet_delay_dicts = []
+    flow_order = []
+    for element in flow_list:
+        flow_order.append("F" + str(element[0]))
+        wind_size_dicts.append(element[1].window_size)
+        flow_rate_dicts.append(element[1].flow_rates)
+        packet_delay_dicts.append(element[1].packet_delays)
+
+    # Graph the window size over time
+    add_graph(wind_size_dicts, network.curr_time, "Window Size (pkts)", \
+        flow_order)
+
+    # Graph the flow rate over time
+    add_graph(flow_rate_dicts, network.curr_time, "Flow Rate (bps)", \
+        flow_order)
+
+    # Graph the packet delays over time
+    add_graph(packet_delay_dicts, network.curr_time, "Packet Delay (sec)")
 '''
 
