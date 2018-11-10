@@ -82,7 +82,10 @@ class Link:
             else:
                 # We don't need to do anything with the packet reference, but we 
                 # should keep track that a packet was dropped at this timestamp
-                self.network.packet_loss[curr_time] += 1
+                if self.curr_time in self.network.packet_loss:
+                    self.network.packet_loss[self.curr_time] += 1
+                else:
+                    self.network.packet_loss[self.curr_time] = 1
             pkt.curr_pos = self
         # TODO: Update the congestion and dynamic cost pf the link and bit rate? 
 
@@ -112,8 +115,9 @@ class Link:
 
         # Link rate = total bits from packets so far + bits of this 
         # packet / TIMESTEP
-        self.link_rates[curr_time] = ((self.link_rates[curr_time] * \
-            TIMESTEP) + packet.num_bits) / TIMESTEP
+        self.link_rates[self.curr_time] = (
+            ((self.link_rates[self.curr_time] * TIMESTEP) + packet.num_bits)
+            / TIMESTEP)
         
 
     def run(self, curr_time):

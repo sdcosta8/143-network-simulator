@@ -1,17 +1,14 @@
 from utils import (
-    DEBUG, RENO, TIMESTEP,
+    DEBUG, RENO,
     PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
 )
 
 class Packet:
 
     def __init__(self, num_bits, packet_type, source, destination, 
-        time_spawn, in_transit, curr_pos, id, network,
-        flow=None, packet_info=None, packet_no=None, last_packet=None, 
-        expecting_packet=None):
-
-        # The id of the packet represented as an integer
-        self.id = id
+        time_spawn, in_transit, curr_pos, network,
+        flow, packet_info, packet_no, last_packet, 
+        expecting_packet):
 
         # Reference to the network object
         self.network = network

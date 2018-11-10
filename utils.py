@@ -7,9 +7,9 @@ KB = 1
 Mb = 2
 
 # Flags for window size protocal
-RENO = False
+RENO = True
 
-TIMESTEP = 0
+TIMESTEP = 0.01
 
 # Packet types
 PACKET = 0

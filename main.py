@@ -63,7 +63,7 @@ def add_graph(time_dicts, last_time, y_label, series_labels):
     plt.legend()
     plt.xlabel('Time (secs)')
     plt.ylabel(y_label)
-    plt.savefig(label + '.png')
+    plt.savefig(y_label + '.png')
     plt.close
 
 
@@ -87,7 +87,7 @@ if __name__ == '__main__':
         dest = network.hosts[int(flow["dest"])]
         new_flow = network.create_flow(\
             convert_to_bits(float(flow["data_amount"]), MB), src, dest, \
-            float(flow["start_time"]), int(flow["window"]), \
+            float(flow["start_time"]), float(flow["window"]), \
                 int(flow["id"]))
         src.flows.append(new_flow)
 
@@ -192,7 +192,7 @@ if __name__ == '__main__':
             print("    Source IP Address: " + str(flow[1].source.ip))
             print("    Destination IP Address: " + str(flow[1].destination.ip))
             print("    Time Spawned " + str(flow[1].time_spawn))
-            print("    Max Window Size: " + str(flow[1].max_window))
+            print("    Window Size: " + str(flow[1].window))
 
     # This will find the minimum time step for each iteration 
     lst_link_prop = []
@@ -200,8 +200,10 @@ if __name__ == '__main__':
     for links in links_list:
         lst_link_rate.append(links[1].capacity)
         lst_link_prop.append(links[1].prop_time)    
-        TIME_STEP = find_time_step(lst_link_rate, lst_link_prop)
+    TIME_STEP = find_time_step(lst_link_rate, lst_link_prop)
 
+    # Start the network!
+    network.run_network()
 
 '''
     # Start the network! 

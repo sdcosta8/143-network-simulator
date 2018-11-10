@@ -17,12 +17,12 @@ class Network:
         self.hosts = {}
         self.routers = {}
         self.links = {}
-        self.packets = {}
         self.curr_time = 0
         self.is_running = False
+        self.packet_loss = {}
 
-    def create_flow(self, size, source, destination, spawn_time, max_window, flow_id):
-        flow = Flow(size, source, destination, spawn_time, max_window,
+    def create_flow(self, size, source, destination, spawn_time, window, flow_id):
+        flow = Flow(size, source, destination, spawn_time, window,
                     flow_id, self)
         self.flows[flow_id] = flow
         if DEBUG:
@@ -52,14 +52,14 @@ class Network:
         return router
     
     def create_packet(self, num_bits, packet_type, source,
-                      destination, in_transit, curr_pos, packet_id,
-                      flow_id=None, packet_info=None,
-                      packet_no=None, last_packet=None):
+                      destination, in_transit, curr_pos,
+                      flow=None, packet_info=None,
+                      packet_no=None, last_packet=False,
+                      expecting_packet=None):
         packet = Packet(num_bits, packet_type, source, destination,
                         self.curr_time, in_transit, curr_pos,
-                        packet_id, self,
-                        flow_id, packet_info, packet_no, last_packet)
-        self.packets[packet_id] = packet
+                        self, flow, 
+                        packet_info, packet_no, last_packet, expecting_packet)
         return packet
 
     def run_network(self):
@@ -68,8 +68,8 @@ class Network:
         '''
         self.is_running = True
 
-        # TODO: Need a stopping mechanism
         while self.is_running:
+            print("current time:", self.curr_time)
             for _, flow in self.flows.items():
                 flow.run(self.curr_time)
             for _, host in self.hosts.items():
@@ -78,8 +78,16 @@ class Network:
                 router.run(self.curr_time)
             for _, link in self.links.items():
                 link.run(self.curr_time)
+            
+            # Check if all flows are finished
+            all_finished = True
             for _, flow in self.flows.items():
-                flow.run(self.curr_time)
+                if flow.finished is False:
+                    all_finished = False
+                    flow.run(self.curr_time)
+            if all_finished:
+                print("All flows finished!")
+                self.is_running = False
 
             self.curr_time += TIMESTEP
 

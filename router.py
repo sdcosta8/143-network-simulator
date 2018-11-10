@@ -1,6 +1,6 @@
 from collections import deque
 from utils import (
-    DEBUG, RENO, TIMESTEP,
+    DEBUG, RENO,
     PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
 )
 

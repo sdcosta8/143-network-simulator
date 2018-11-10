@@ -41,6 +41,12 @@ class Host:
         # Field to keep track of current time
         self.curr_time = None
 
+    def receive_packet(self, pkt):
+        '''
+        Called by the link.
+        Receives a packet. Calls the flow's receive packet function
+        '''
+        pkt.flow.receive_packet(pkt)
 
     def run(self, curr_time):
         '''
@@ -49,9 +55,5 @@ class Host:
         '''
         # Update internal clock
         self.curr_time = curr_time
-
-        # TODO ?
-        # Check if any sent packets exceed the timeout
-        # self.check_for_timeouts()
 
         pass
