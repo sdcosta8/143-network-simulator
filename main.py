@@ -7,6 +7,26 @@ from utils import (
     DEBUG, MB, KB, Mb, RENO, TIMESTEP
 )
 
+# This will find the minimum time step for each iteration based on the 
+# smallest time that it takes for a message to be propogated through a link
+# or a message to be transmited
+def find_time_step(lst_link_delay, lst_prop):
+    current_time = 0.0
+    minimum_time = 1000000000000
+    for link_delay in lst_link_delay:
+        current_time = (MESSAGE_SIZE / link_delay) 
+        if current_time < minimum_time:
+            minimum_time = current_time 
+    
+    for prop in lst_prop:
+        current_time = prop 
+        if current_time < minimum_time:
+            minimum_time = current_time    
+    
+    return minimum_time / 4 
+    
+    
+
 def convert_to_bits(num, units):
     if units == MB:
         return num * 8e6
@@ -173,7 +193,12 @@ if __name__ == '__main__':
             print("    Time Spawned " + str(flow[1].time_spawn))
             print("    Max Window Size: " + str(flow[1].max_window))
 
-
+    # This will find the minimum time step for each iteration 
+    lst_link_prop = []
+    for links in links_list:
+        lst_link_rate.append(links.capacity)
+        lst_link_prop.append(links.prop_time)    
+        TIME_STEP = find_time_step(lst_link_rate, lst_link_prop)
 
 
 '''
