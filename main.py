@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from network import Network
 from host import Host
 from utils import (
-    DEBUG, MB, KB, Mb, RENO, TIMESTEP
+    DEBUG, MB, KB, Mb, RENO, TIMESTEP, MESSAGE_SIZE
 )
 
 # This will find the minimum time step for each iteration based on the 
@@ -196,9 +196,10 @@ if __name__ == '__main__':
 
     # This will find the minimum time step for each iteration 
     lst_link_prop = []
+    lst_link_rate = []
     for links in links_list:
-        lst_link_rate.append(links.capacity)
-        lst_link_prop.append(links.prop_time)    
+        lst_link_rate.append(links[1].capacity)
+        lst_link_prop.append(links[1].prop_time)    
         TIME_STEP = find_time_step(lst_link_rate, lst_link_prop)
 
 
