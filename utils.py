@@ -9,6 +9,7 @@ Mb = 2
 # Flags for window size protocal
 RENO = False
 
+TIMESTEP = 0
 
 # Packet types
 PACKET = 0
