@@ -47,7 +47,7 @@ class Flow:
         # This is the time that a host will wait for an acknowledgement to
         # come back after it sends a packet. If this time is exceeded, the host
         # will resend the packet
-        self.maximum_wait_time = 15
+        self.maximum_wait_time = 200
         
         # This value tells us if the flow has been spawned
         self.spawned = False
@@ -200,6 +200,12 @@ class Flow:
             print(self.source.id)
             self.next_packet_to_send = min_timeout_no
             self.window = 1
+            with open('timeouts.txt', 'a') as the_file:
+                the_file.write(" pkt no "+ str(min_timeout_no) + " flow " + str(self.id)\
+                               + " has timed out and was placed in host" + str(self.source.id)+\
+                               " s outgoing queue to be sent" + " time out time " 
+                               + str(self.curr_time) + 
+                               " \n")                      
             if DEBUG:
                 print(" pkt no "+ str(min_timeout_no) + " flow " + str(self.id)\
                  + " has timed out and was placed in host" + str(self.source.id)+\
@@ -313,9 +319,9 @@ class Flow:
         if curr_time not in self.packet_delays:
             self.packet_delays[curr_time] = 0
 
-
+        
         # TODO: decide on how often we want to record the flow rate
-        if self.curr_time % 1 == 0:
+        if self.curr_time % 2 > .5:
             self.flow_rates[curr_time] = self.num_packets_received * PACKET_SIZE
             self.num_packets_received = 0 
         

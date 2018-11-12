@@ -1,5 +1,5 @@
 # Flag for debug mode
-DEBUG = True
+DEBUG = False
 
 # Unit conversions
 MB = 0
