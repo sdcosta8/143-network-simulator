@@ -61,7 +61,25 @@ class Link:
         # Keep track of the link rates over time. this should be the 
         # number of bits sent over the timestep
         self.link_rates = {}
-        
+
+        self.curr_pkt_transmit = None
+        self.end_transmit_time = 0
+
+
+    # This is only called when it's time to transmit a packet
+    def transmit_packet(self):
+        if self.end_transmit_time <= self.curr_time:
+            if curr_pkt_transmit != None:
+                self.send_packet(curr_pkt_transmit)
+
+            # If we can, pop it off of the buffer and send this packet
+            if len(self.buffer) > 0:
+                packet = self.buffer.popleft()
+                self.curr_pkt_transmit = packet
+                self.end_transmit_time = self.curr_time + 
+                    (packet.num_bits / self.bit_rate)
+            else:
+                curr_pkt_transmit = None
 
 
     def add_packets(self, packets):
@@ -95,10 +113,7 @@ class Link:
         Takes a packet that is popped from the buffer and schedule it for
         transimision.
         '''
-        arrival_time = (
-            self.curr_time + 
-            (packet.num_bits / self.bit_rate) + 
-            self.prop_time)
+        arrival_time = self.curr_time + self.prop_time
         self.traveling_packets.append((arrival_time, packet))
 
     
@@ -139,22 +154,8 @@ class Link:
                 self.finish_sending_packet(packet)
             else:
                 break
-        
-        # Check if the capacity is reached to send packets from buffer
-        # Number of bits we are planning to send
-        bits_planning = 0
-        # Number of more bits we can send at this time
-        bits_capacity = self.capacity * TIMESTEP
-        for _, packet in self.traveling_packets:
-            bits_capacity -= packet.num_bits
-        while len(self.buffer) > 0:
-            bits_planning += self.buffer[0].num_bits
-            # If we cannot send this packet, break
-            if bits_planning > bits_capacity:
-                break
-            # If we can, pop it off of the buffer and send this packet
-            packet = self.buffer.popleft()
-            self.send_packet(packet)
+
+        self.transmit_packet()
 
         self.buffer_occupancy[curr_time] = len(self.buffer)
 
