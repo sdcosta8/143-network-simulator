@@ -23,7 +23,7 @@ def find_time_step(lst_link_delay, lst_prop):
         if current_time < minimum_time:
             minimum_time = current_time    
     
-    return minimum_time / 4 
+    return minimum_time / 2
     
     
 
@@ -197,6 +197,7 @@ if __name__ == '__main__':
     # This will find the minimum time step for each iteration 
     lst_link_prop = []
     lst_link_rate = []
+    links_list = list(network.links.items())
     for links in links_list:
         lst_link_rate.append(links[1].capacity)
         lst_link_prop.append(links[1].prop_time)    

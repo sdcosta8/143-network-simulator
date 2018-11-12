@@ -201,9 +201,9 @@ class Flow:
             self.next_packet_to_send = min_timeout_no
             self.window = 1
             if DEBUG:
-                print(" pkt no {0} flow {1} has timed out and was \
-                placed in host {2}'s  outgoing queue to be sent").\
-                    format(min_timeout_no, self.id , self.source.id)
+                print(" pkt no "+ str(min_timeout_no) + " flow " + str(self.id)\
+                 + " has timed out and was placed in host" + str(self.source.id)+\
+                 " s outgoing queue to be sent")
 
 
     def calc_send_receive_rate(self):
