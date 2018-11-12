@@ -195,6 +195,9 @@ class Flow:
         
         # If something has timed out
         if min_timeout_no is not None:
+            print(min_timeout_no)
+            print(self.id)
+            print(self.source.id)
             self.next_packet_to_send = min_timeout_no
             self.window = 1
             if DEBUG:

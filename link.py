@@ -69,14 +69,14 @@ class Link:
     # This is only called when it's time to transmit a packet
     def transmit_packet(self):
         if self.end_transmit_time <= self.curr_time:
-            if curr_pkt_transmit != None:
-                self.send_packet(curr_pkt_transmit)
+            if self.curr_pkt_transmit != None:
+                self.send_packet(self.curr_pkt_transmit)
 
             # If we can, pop it off of the buffer and send this packet
             if len(self.buffer) > 0:
                 packet = self.buffer.popleft()
                 self.curr_pkt_transmit = packet
-                self.end_transmit_time = self.curr_time + 
+                self.end_transmit_time = self.curr_time + \
                     (packet.num_bits / self.bit_rate)
             else:
                 curr_pkt_transmit = None
