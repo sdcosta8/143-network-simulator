@@ -64,7 +64,7 @@ def add_graph(time_dicts, last_time, y_label, series_labels):
     plt.xlabel('Time (secs)')
     plt.ylabel(y_label)
     plt.savefig(y_label + '.png')
-    plt.close
+    plt.close()
 
 
 if __name__ == '__main__':
@@ -206,7 +206,6 @@ if __name__ == '__main__':
     # Start the network!
     network.run_network()
 
-'''
     # Start the network! 
     network.run_network()
 
@@ -255,6 +254,7 @@ if __name__ == '__main__':
         flow_order)
 
     # Graph the packet delays over time
-    add_graph(packet_delay_dicts, network.curr_time, "Packet Delay (sec)")
-'''
+    add_graph(packet_delay_dicts, network.curr_time, "Packet Delay (sec)", \
+        flow_order)
+
 
