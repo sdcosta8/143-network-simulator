@@ -46,6 +46,7 @@ class Host:
         Called by the link.
         Receives a packet. Calls the flow's receive packet function
         '''
+        print("packet received")
         pkt.flow.receive_packet(pkt)
 
     def run(self, curr_time):

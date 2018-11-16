@@ -4,7 +4,7 @@ from link import Link
 from router import Router
 from packet import Packet
 from utils import (
-    DEBUG, RENO, TIMESTEP,
+    DEBUG, RENO,
     PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
 )
 
@@ -20,6 +20,7 @@ class Network:
         self.curr_time = 0
         self.is_running = False
         self.packet_loss = {}
+        self.timestep = 0
 
     def create_flow(self, size, source, destination, spawn_time, window, flow_id):
         flow = Flow(size, source, destination, spawn_time, window,
@@ -67,7 +68,6 @@ class Network:
         Call and run all components of the network
         '''
         self.is_running = True
-
         while self.is_running:
             print("current time:", self.curr_time)
             for _, flow in self.flows.items():
@@ -89,6 +89,6 @@ class Network:
                 print("All flows finished!")
                 self.is_running = False
 
-            self.curr_time += TIMESTEP
+            self.curr_time += self.timestep
 
     

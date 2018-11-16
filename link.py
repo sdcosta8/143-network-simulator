@@ -1,6 +1,6 @@
 from collections import deque
 from utils import (
-    DEBUG, RENO, TIMESTEP,
+    DEBUG, RENO,
     PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
 )
 
@@ -79,7 +79,7 @@ class Link:
                 self.end_transmit_time = self.curr_time + \
                     (packet.num_bits / self.bit_rate)
             else:
-                curr_pkt_transmit = None
+                self.curr_pkt_transmit = None
 
 
     def add_packets(self, packets):
@@ -131,8 +131,8 @@ class Link:
         # Link rate = total bits from packets so far + bits of this 
         # packet / TIMESTEP
         self.link_rates[self.curr_time] = (
-            ((self.link_rates[self.curr_time] * TIMESTEP) + packet.num_bits)
-            / TIMESTEP)
+            ((self.link_rates[self.curr_time] * self.network.timestep) + packet.num_bits)
+            / self.network.timestep)
         
 
     def run(self, curr_time):

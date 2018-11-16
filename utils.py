@@ -7,7 +7,7 @@ KB = 1
 Mb = 2
 
 # Flags for window size protocal
-RENO = True
+RENO = False
 
 TIMESTEP = 0.01
 

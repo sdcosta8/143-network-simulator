@@ -4,8 +4,9 @@ import matplotlib.pyplot as plt
 from network import Network
 from host import Host
 from utils import (
-    DEBUG, MB, KB, Mb, RENO, TIMESTEP, MESSAGE_SIZE
+    DEBUG, MB, KB, Mb, RENO, MESSAGE_SIZE
 )
+
 
 # This will find the minimum time step for each iteration based on the 
 # smallest time that it takes for a message to be propogated through a link
@@ -22,10 +23,7 @@ def find_time_step(lst_link_delay, lst_prop):
         current_time = prop 
         if current_time < minimum_time:
             minimum_time = current_time    
-    
-    return minimum_time / 2
-    
-    
+    return minimum_time
 
 def convert_to_bits(num, units):
     if units == MB:
@@ -45,7 +43,7 @@ def convert_to_seconds(ms):
 # mapped to rates, packet losses, etc.
 # The list will be length > 1 in a case where we need
 # to plot several series
-def add_graph(time_dicts, last_time, y_label, series_labels):
+def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
     for i in range(len(time_dicts)):
         time_dict = time_dicts[i]
         series = series_labels[i]
@@ -57,7 +55,7 @@ def add_graph(time_dicts, last_time, y_label, series_labels):
             if time in time_dict:
                 y_axis.append(time_dict[time])
                 x_axis.append(time)
-            time += TIMESTEP
+            time += timestep
 
         plt.plot(x_axis, y_axis, label=series)
     plt.legend()
@@ -201,7 +199,8 @@ if __name__ == '__main__':
     for links in links_list:
         lst_link_rate.append(links[1].capacity)
         lst_link_prop.append(links[1].prop_time)    
-    TIME_STEP = find_time_step(lst_link_rate, lst_link_prop)
+    timestep = find_time_step(lst_link_rate, lst_link_prop)
+    network.timestep = timestep
 
     # Start the network!
     network.run_network()
@@ -223,15 +222,15 @@ if __name__ == '__main__':
 
     # Graph the buffer occupancies over time
     add_graph(buffer_occ_dicts, network.curr_time, "Buffer Occupancy (pkts)", \
-        link_order)
+        link_order, timestep)
 
     # Graph the packet loss over time
     add_graph(packet_loss_dicts, network.curr_time, "Packet Loss (pkts)", \
-        link_order)
+        link_order, timestep)
 
     # Graph the link rates
     add_graph(link_rate_dicts, network.curr_time, "Link Rate (bps)", \
-        link_order)
+        link_order, timestep)
 
     # Get the values for the calculations each flow keeps track of 
     flow_list = network.flows.items()
@@ -247,14 +246,14 @@ if __name__ == '__main__':
 
     # Graph the window size over time
     add_graph(wind_size_dicts, network.curr_time, "Window Size (pkts)", \
-        flow_order)
+        flow_order, timestep)
 
     # Graph the flow rate over time
     add_graph(flow_rate_dicts, network.curr_time, "Flow Rate (bps)", \
-        flow_order)
+        flow_order, timestep)
 
     # Graph the packet delays over time
     add_graph(packet_delay_dicts, network.curr_time, "Packet Delay (sec)", \
-        flow_order)
+        flow_order, timestep)
 
 
