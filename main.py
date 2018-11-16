@@ -50,13 +50,9 @@ def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
         x_axis = []
         y_axis = []
 
-        time = 0
-        while time <= last_time:
-            if time in time_dict:
-                y_axis.append(time_dict[time])
-                x_axis.append(time)
-            time += timestep
-
+        for element in time_dict:
+            x_axis.append(element[0])
+            y_axis.append(element[1])
         plt.plot(x_axis, y_axis, label=series)
     plt.legend()
     plt.xlabel('Time (secs)')
@@ -222,15 +218,15 @@ if __name__ == '__main__':
 
     # Graph the buffer occupancies over time
     add_graph(buffer_occ_dicts, network.curr_time, "Buffer Occupancy (pkts)", \
-        link_order, timestep)
+        link_order, 0.01)
 
     # Graph the packet loss over time
     add_graph(packet_loss_dicts, network.curr_time, "Packet Loss (pkts)", \
-        link_order, timestep)
+        link_order, 0.01)
 
     # Graph the link rates
     add_graph(link_rate_dicts, network.curr_time, "Link Rate (bps)", \
-        link_order, timestep)
+        link_order, 0.01)
 
     # Get the values for the calculations each flow keeps track of 
     flow_list = network.flows.items()
@@ -246,14 +242,14 @@ if __name__ == '__main__':
 
     # Graph the window size over time
     add_graph(wind_size_dicts, network.curr_time, "Window Size (pkts)", \
-        flow_order, timestep)
+        flow_order, 0.01)
 
     # Graph the flow rate over time
     add_graph(flow_rate_dicts, network.curr_time, "Flow Rate (bps)", \
-        flow_order, timestep)
+        flow_order, 0.01)
 
     # Graph the packet delays over time
     add_graph(packet_delay_dicts, network.curr_time, "Packet Delay (sec)", \
-        flow_order, timestep)
+        flow_order, 0.01)
 
 

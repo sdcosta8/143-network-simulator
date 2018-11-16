@@ -2,6 +2,7 @@ from utils import (
     DEBUG, RENO, PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
 )
 from math import ceil
+import random
 
 class Flow:
 
@@ -59,17 +60,17 @@ class Flow:
         self.curr_time = 0
 
         # Keep track of the window sizes over time 
-        self.window_size = {}
+        self.window_size = []
 
         # keep track of the packet delays (time between spawning and arriving)
         # at destination host
-        self.packet_delays = {}
+        self.packet_delays = []
 
         # Number of packets received over a particular time period
         self.num_packets_received = 0
 
         # Flow rate of the bits recived per time step
-        self.flow_rates = {}
+        self.flow_rates = [[0, 0]]
 
 
     
@@ -154,7 +155,7 @@ class Flow:
         # Check if the received object is a packet
         elif pkt.packet_type == PACKET:
             self.num_packets_received += 1
-            self.packet_delays[self.curr_time] = self.curr_time - pkt.time_spawn       
+            self.packet_delays.append([self.curr_time, self.curr_time - pkt.time_spawn])       
             if DEBUG:
                 print(" host no", self.destination.id,
                       "received packet number", pkt.packet_no,
@@ -313,17 +314,16 @@ class Flow:
             # Check to send packets
             self.send_packets()
             self.check_for_timeouts()
-
-        # Record window size for graphing purposes
-        self.window_size[curr_time] = self.window
-        if curr_time not in self.packet_delays:
-            self.packet_delays[curr_time] = 0
-
         
-        # TODO: decide on how often we want to record the flow rate
-        if self.curr_time % 2 > .5:
-            self.flow_rates[curr_time] = self.num_packets_received * PACKET_SIZE
-            self.num_packets_received = 0 
+        # use this so that we dont get every point
+        if random.randint(0, 1000) == 500 and curr_time != 0:
+            prev_time = self.flow_rates[len(self.flow_rates) - 1][0]
+            if (prev_time - curr_time != 0):
+                prev_time = self.flow_rates[len(self.flow_rates) - 1][0]
+                self.window_size.append([curr_time, self.window])
+                self.flow_rates.append([curr_time, (self.num_packets_received * PACKET_SIZE) / \
+                    (curr_time - prev_time)])
+                self.num_packets_received = 0 
         
         
             

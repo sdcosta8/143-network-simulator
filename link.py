@@ -3,7 +3,7 @@ from utils import (
     DEBUG, RENO,
     PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
 )
-
+import random
 
 class Link:
     def __init__(self, connection1, connection2, buffer_size, 
@@ -53,14 +53,14 @@ class Link:
 
         # Use this to keep track of the buffer occupancy over time. 
         # Should map timestamp to number of packets
-        self.buffer_occupancy = {}
+        self.buffer_occupancy = []
 
         # Keep track of the packet loss in this link
-        self.packet_loss = {}
+        self.packet_loss = []
 
         # Keep track of the link rates over time. this should be the 
         # number of bits sent over the timestep
-        self.link_rates = {}
+        self.link_rates = [[0, 0]]
 
         self.curr_pkt_transmit = None
         self.end_transmit_time = 0
@@ -100,10 +100,9 @@ class Link:
             else:
                 # We don't need to do anything with the packet reference, but we 
                 # should keep track that a packet was dropped at this timestamp
-                if self.curr_time in self.network.packet_loss:
-                    self.network.packet_loss[self.curr_time] += 1
-                else:
-                    self.network.packet_loss[self.curr_time] = 1
+                
+                self.packet_loss[len(self.packet_loss) - 1] += 1
+
             pkt.curr_pos = self
         # TODO: Update the congestion and dynamic cost pf the link and bit rate? 
 
@@ -130,9 +129,7 @@ class Link:
 
         # Link rate = total bits from packets so far + bits of this 
         # packet / TIMESTEP
-        self.link_rates[self.curr_time] = (
-            ((self.link_rates[self.curr_time] * self.network.timestep) + packet.num_bits)
-            / self.network.timestep)
+        self.link_rates[len(self.link_rates) - 1][1] += packet.num_bits
         
 
     def run(self, curr_time):
@@ -142,8 +139,11 @@ class Link:
         '''
         # Update internal clock
         self.curr_time = curr_time
-        self.packet_loss[curr_time] = 0
-        self.link_rates[curr_time] = 0 
+
+        chosen_timestep = random.randint(0, 1000)
+        if chosen_timestep == 500 and curr_time:
+            self.packet_loss.append([curr_time, 0])
+            self.link_rates.append([curr_time, 0])
 
         # Check traveling packets and see if any packet should arrive
         while len(self.traveling_packets) > 0:
@@ -157,6 +157,11 @@ class Link:
 
         self.transmit_packet()
 
-        self.buffer_occupancy[curr_time] = len(self.buffer)
+        # use this so that we dont get every point
+        if chosen_timestep == 500 and self.curr_time != 0:
+            if self.link_rates[len(self.link_rates) - 1][0] - self.link_rates[len(self.link_rates) - 2][0] != 0:
+                self.link_rates[len(self.link_rates) - 1][1] /= \
+                    (self.link_rates[len(self.link_rates) - 1][0] - self.link_rates[len(self.link_rates) - 2][0])
+                self.buffer_occupancy.append([curr_time, len(self.buffer)])
 
 

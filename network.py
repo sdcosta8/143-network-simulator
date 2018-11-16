@@ -19,7 +19,6 @@ class Network:
         self.links = {}
         self.curr_time = 0
         self.is_running = False
-        self.packet_loss = {}
         self.timestep = 0
 
     def create_flow(self, size, source, destination, spawn_time, window, flow_id):
@@ -69,7 +68,8 @@ class Network:
         '''
         self.is_running = True
         while self.is_running:
-            print("current time:", self.curr_time)
+            if DEBUG:
+                print("current time:", self.curr_time)
             for _, flow in self.flows.items():
                 flow.run(self.curr_time)
             for _, host in self.hosts.items():
