@@ -26,8 +26,8 @@ class Packet:
         # A reference to the destination host
         self.destination = destination
 
-        # The time that this packet was spawned. If the packet has been dropped
-        # previously, this won't equal the time the flow was initialized
+        # The time that this packet was spawned.
+        # If this is ack, the time the original packet was spawned.
         self.time_spawn = time_spawn
 
         # 0 if the packet is at a host or router. 1 if the packet is in a link

@@ -101,7 +101,7 @@ class Link:
                 # We don't need to do anything with the packet reference, but we 
                 # should keep track that a packet was dropped at this timestamp
                 
-                self.packet_loss[len(self.packet_loss) - 1] += 1
+                self.packet_loss[len(self.packet_loss) - 1][1] += 1
 
             pkt.curr_pos = self
         # TODO: Update the congestion and dynamic cost pf the link and bit rate? 

@@ -8,7 +8,6 @@ class Flow:
 
     def __init__(self, size, source, destination, time_spawn, window,
                  id, network):
-        # TODO: make maximum_wait_time an input
 
         # The total size of the flow. Lets represent this in bits
         self.size = size
@@ -33,6 +32,9 @@ class Flow:
         self.expecting_packet = 1
         self.repeated_ack_count = 0
 
+        # As the destination, what the host is expecting
+        self.dest_expecting_packet = 1
+
         # Reset to expecting_packet when we receive 3 repeated ack
         self.next_packet_to_send = 1
         # All packets that are sent but have not received acknowledgements
@@ -45,10 +47,11 @@ class Flow:
         # The current window size
         self.window = window
 
-        # This is the time that a host will wait for an acknowledgement to
-        # come back after it sends a packet. If this time is exceeded, the host
-        # will resend the packet
-        self.maximum_wait_time = 200
+        # Retransmission timeout time
+        # Compared to (curr_time - rto_timer) to determine timeout
+        self.rto = 3
+        # Timeout timer, reset to curr_time at successful acks and timeouts
+        self.rto_timer = 0
         
         # This value tells us if the flow has been spawned
         self.spawned = False
@@ -72,8 +75,17 @@ class Flow:
         # Flow rate of the bits recived per time step
         self.flow_rates = [[0, 0]]
 
+        # Protocol, "RENO" or "FAST"
+        self.protocol = "RENO"
+        # Current phase for RENO: "SS", "CA", "FR"
+        self.tcp_phase = "SS"
+        # ssthresh for RENO
+        self.ssthresh = float("inf")
 
-    
+        # Most current round trip time
+        self.rtt = float("inf")
+
+
     def initialize_flow(self):
         '''
         Called when the it's time to spawn
@@ -93,7 +105,7 @@ class Flow:
             # We can send more packets
             pkt = self.network.create_packet(
                 PACKET_SIZE, PACKET,
-                self.source, self.destination,
+                self.source, self.destination, self.curr_time,
                 False, self.source,
                 flow=self, packet_no=self.next_packet_to_send,
                 last_packet=(self.next_packet_to_send == self.num_packets)
@@ -106,7 +118,7 @@ class Flow:
             # Update the flow's info about next packet to send
             self.next_packet_to_send += 1
 
-            if True:
+            if DEBUG:
                 print("sent packet", pkt.packet_no, "of flow id", self.id)
 
 
@@ -115,13 +127,18 @@ class Flow:
         Take a packet/ack that arrives from the link, update the queues
         Send an ack back if a packet is received
         '''
-        # TODO
-        # If last packet acknowledged, change finished to True
-        ####
         
         # See if it is acknowledgement
         if pkt.packet_type == ACK:
-            # Add the ack to the flow's ack info
+
+            # Calculate RTT and update RTO
+            if ((pkt.expecting_packet - 1) in self.sent_times and
+               self.tcp_phase == "CA"):
+                # Note that time_spawn of ack is of time spawn of original pkt
+                self.rtt = self.curr_time - pkt.time_spawn
+                self.update_rto()
+
+            # Update the flow's duplicate ack info
             if self.expecting_packet == pkt.expecting_packet:
                 self.repeated_ack_count += 1
             else:
@@ -131,20 +148,14 @@ class Flow:
                     del self.sent_times[self.expecting_packet - 1]
             if DEBUG:
                 print(" acknowlegement for pkt no", pkt.expecting_packet - 1,
-                      "flow", self.id,  "received")
+                      "flow", self.id,  "received. RTT:", self.rtt)
 
             # Update window size based on protocol
-            # TODO: right now it is hard coded for reno
-            if RENO:
-                # This will come in handy for reno and other protocols to
-                # Timeout if we have 3 duplicate ack
-                if self.repeated_ack_count >= 3:
-                    self.window = int(self.window / 2)
-                    self.next_packet_to_send = self.expecting_packet
-                    self.repeated_ack_count = 0
-                else:
-                    # Increase window size by 1 / window
-                    self.window += 1 / self.window
+            self.update_flow_control_ack()
+            if True:
+                print("", self.tcp_phase, self.curr_time,
+                " ack", pkt.expecting_packet - 1, "W:", self.window,
+                "repeated ack:", self.repeated_ack_count)
 
             # Check if all the packets in the flow have been received
             if self.expecting_packet == self.num_packets + 1:
@@ -154,7 +165,9 @@ class Flow:
 
         # Check if the received object is a packet
         elif pkt.packet_type == PACKET:
-            self.num_packets_received += 1
+            if pkt.packet_no == self.dest_expecting_packet:
+                self.dest_expecting_packet += 1
+                self.num_packets_received += 1
             self.packet_delays.append([self.curr_time, self.curr_time - pkt.time_spawn])       
             if DEBUG:
                 print(" host no", self.destination.id,
@@ -164,16 +177,15 @@ class Flow:
             # Create an acknowledgement for the packet
             ack_packet = self.network.create_packet(
                 ACK_SIZE, ACK,
-                pkt.destination, pkt.source,
+                pkt.destination, pkt.source, pkt.time_spawn,
                 False, pkt.destination,
-                flow=self, packet_no=self.next_packet_to_send,
-                expecting_packet=pkt.packet_no+1)
+                flow=self, expecting_packet=self.dest_expecting_packet)
 
             # Send the packet by putting it in the link
             self.destination.outgoing_link.add_packets([ack_packet])
 
             if DEBUG:
-                print("acknowledgement packet for pkt no", pkt.packet_no,
+                print(" acknowledgement packet for pkt no", pkt.packet_no,
                       "flow", self.id, "is sent")
 
 
@@ -183,34 +195,38 @@ class Flow:
         This will occur if the max waiting time of the host is greater than the
         time delta of the time that the packet was sent at.
         '''
+        if (self.curr_time - self.rto_timer) >= self.rto:
+            # If this flow has timed out, update flow control
+            self.update_flow_control_rto()
+            self.window_size.append([self.curr_time, self.window])
 
-        # Find the minimum packet that has timed out
-        min_timeout_no = None
-        for packet_no, sent_time in self.sent_times.items():
-            if packet_no < self.expecting_packet:
-                # If the packet is not acked
-                if (self.curr_time - sent_time > self.maximum_wait_time and
-                    (min_timeout_no is None or packet_no < min_timeout_no)):
-                    # If the packet is not acked and has timed out
-                    min_timeout_no = packet_no
+        # # Find the minimum packet that has timed out
+        # min_timeout_no = None
+        # for packet_no, sent_time in self.sent_times.items():
+        #     if packet_no < self.expecting_packet:
+        #         # If the packet is not acked
+        #         if (self.curr_time - sent_time > self.rto and
+        #             (min_timeout_no is None or packet_no < min_timeout_no)):
+        #             # If the packet is not acked and has timed out
+        #             min_timeout_no = packet_no
         
-        # If something has timed out
-        if min_timeout_no is not None:
-            print(min_timeout_no)
-            print(self.id)
-            print(self.source.id)
-            self.next_packet_to_send = min_timeout_no
-            self.window = 1
-            with open('timeouts.txt', 'a') as the_file:
-                the_file.write(" pkt no "+ str(min_timeout_no) + " flow " + str(self.id)\
-                               + " has timed out and was placed in host" + str(self.source.id)+\
-                               " s outgoing queue to be sent" + " time out time " 
-                               + str(self.curr_time) + 
-                               " \n")                      
-            if DEBUG:
-                print(" pkt no "+ str(min_timeout_no) + " flow " + str(self.id)\
-                 + " has timed out and was placed in host" + str(self.source.id)+\
-                 " s outgoing queue to be sent")
+        # # If something has timed out
+        # if min_timeout_no is not None:
+        #     print(min_timeout_no)
+        #     print(self.id)
+        #     print(self.source.id)
+        #     self.next_packet_to_send = min_timeout_no
+        #     self.window = 1
+        #     with open('timeouts.txt', 'a') as the_file:
+        #         the_file.write(" pkt no "+ str(min_timeout_no) + " flow " + str(self.id)\
+        #                        + " has timed out and was placed in host" + str(self.source.id)+\
+        #                        " s outgoing queue to be sent" + " time out time " 
+        #                        + str(self.curr_time) + 
+        #                        " \n")                      
+        #     if DEBUG:
+        #         print(" pkt no "+ str(min_timeout_no) + " flow " + str(self.id)\
+        #          + " has timed out and was placed in host" + str(self.source.id)+\
+        #          " s outgoing queue to be sent")
 
 
     def calc_send_receive_rate(self):
@@ -229,30 +245,85 @@ class Flow:
         # TODO
         pass
 
-    # Window size protocol function
-    def window_protocol_decrease(self):
-        ''' 
-        This function will be called from the host, when it experiences
-        a timeout for a packet that belongs to this flow or it receives
-        3 of the same acknowlegdments. Based on the protocol, the window 
-        size of the flow will be updated appropriately. This will be 
-        implemented, when we decide which protocols to use for each flow
+    def update_rto(self):
         '''
-        pass
+        Update retransmission timeout time based on the most current RTT.
+        '''
+        self.rto = self.rtt * 2
+        if DEBUG:
+            print(" update_rto RTO:", self.rto)
 
-    def window_size_update_when_pkt_sent(self):
+
+    def update_flow_control_rto(self):
         ''' 
-        This is the function that will be called when a packet is sent
-        so we know how the window size changes based on the protocol
+        Update window size and thresholds according to protocol,
+        upon a retransmission timeout.
+        Set ssthresh to max(W/2, 2), reset W
         '''
-        pass
-        
-    def update_window_size_increase(self):
+        self.rto *= 2
+        self.rto_timer = self.curr_time
+        if self.protocol == "RENO":
+            self.ssthresh = max(self.window / 2, 2)
+            self.window = 1
+            self.next_packet_to_send = self.expecting_packet
+            self.tcp_phase = "SS"
+
+        self.window_size.append([self.curr_time, self.window])
+        if True:
+            print(" Timeout", self.curr_time, " W:", self.window, "ssthresh:",
+                  self.ssthresh, "repeated ack:", self.repeated_ack_count)
+
+
+    def update_flow_control_ack(self):
         ''' 
-        This function will be called from the host, when it receives and 
-        acknowledgement and wants to increase the window size 
+        Update window size and thresholds according to protocol,
+        upon receiving an acknowledgement.
         '''	
-        pass
+        if self.protocol == "RENO":
+
+            # Reset rto timer upon successful ack
+            if self.repeated_ack_count < 3:
+                self.rto_timer = self.curr_time
+                
+            if self.tcp_phase == "SS":
+                # in slow start SS phase
+                if self.window + 1 >= self.ssthresh:
+                    # if reach ssthresh, enter CA
+                    self.window = self.ssthresh
+                    self.tcp_phase = "CA"
+                else:
+                    # still SS, increment window
+                    self.window += 1
+                
+            elif self.tcp_phase == "CA":
+                # in congestion avoidance CA (linear) phase
+                if self.repeated_ack_count < 3:
+                    self.window += 1 / self.window
+                else:
+                    # 3 duplicate ack, enter frfr
+                    self.ssthresh = max(self.window / 2, 2)
+                    self.window = self.ssthresh + 3
+                    self.next_packet_to_send = self.expecting_packet
+                    self.tcp_phase = "FR"
+                    self.repeated_ack_count = 0
+
+            elif self.tcp_phase == "FR":
+                # in fast recovery (exponential) phase
+                if self.window + 1 >= 3 * self.ssthresh - 1:
+                    # if we reach the end of frfr, go back to linear
+                    self.window = self.ssthresh
+                    self.tcp_phase = "CA"
+                else:
+                    # still in frfr, increase exponentially
+                    self.window += 1
+
+            else:
+                print("flow id", self.id, 
+                      "is in unknown phase of RENO: '" + self.tcp_phase + "'")
+
+        
+        self.window_size.append([self.curr_time, self.window])
+
 
     # def all_packets_received(self):
     #     '''
@@ -320,7 +391,6 @@ class Flow:
             prev_time = self.flow_rates[len(self.flow_rates) - 1][0]
             if (prev_time - curr_time != 0):
                 prev_time = self.flow_rates[len(self.flow_rates) - 1][0]
-                self.window_size.append([curr_time, self.window])
                 self.flow_rates.append([curr_time, (self.num_packets_received * PACKET_SIZE) / \
                     (curr_time - prev_time)])
                 self.num_packets_received = 0 

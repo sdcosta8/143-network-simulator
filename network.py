@@ -52,12 +52,12 @@ class Network:
         return router
     
     def create_packet(self, num_bits, packet_type, source,
-                      destination, in_transit, curr_pos,
+                      destination, time_spawn, in_transit, curr_pos,
                       flow=None, packet_info=None,
                       packet_no=None, last_packet=False,
                       expecting_packet=None):
         packet = Packet(num_bits, packet_type, source, destination,
-                        self.curr_time, in_transit, curr_pos,
+                        time_spawn, in_transit, curr_pos,
                         self, flow, 
                         packet_info, packet_no, last_packet, expecting_packet)
         return packet
