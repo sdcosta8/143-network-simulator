@@ -151,7 +151,8 @@ class Link:
                 self.finish_sending_packet(packet)
             else:
                 break
-
+        
+        self.buffer_occupancy.append([curr_time, len(self.buffer)])
         self.transmit_packet()
 
         # use this so that we dont get every point
@@ -167,7 +168,6 @@ class Link:
                 self.link_rates[len(self.link_rates) - 4][1] /= (1000 * self.network.timestep)
                 self.link_rates[len(self.link_rates) - 3][1] /= (1000 * self.network.timestep)
 
-            self.buffer_occupancy.append([curr_time, len(self.buffer)])
 
             self.packet_loss.append([curr_time, 0])
             self.packet_loss.append([curr_time + 1000 * self.network.timestep, 0])
