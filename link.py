@@ -56,7 +56,7 @@ class Link:
         self.buffer_occupancy = []
 
         # Keep track of the packet loss in this link
-        self.packet_loss = []
+        self.packet_loss = [[0, 0]]
 
         # Keep track of the link rates over time. this should be the 
         # number of bits sent over the timestep
@@ -102,6 +102,7 @@ class Link:
                 # should keep track that a packet was dropped at this timestamp
                 
                 self.packet_loss[len(self.packet_loss) - 1][1] += 1
+                self.packet_loss[len(self.packet_loss) - 2][1] += 1
 
             pkt.curr_pos = self
         # TODO: Update the congestion and dynamic cost pf the link and bit rate? 
@@ -130,6 +131,7 @@ class Link:
         # Link rate = total bits from packets so far + bits of this 
         # packet / TIMESTEP
         self.link_rates[len(self.link_rates) - 1][1] += packet.num_bits
+        self.link_rates[len(self.link_rates) - 2][1] += packet.num_bits
         
 
     def run(self, curr_time):
@@ -139,11 +141,6 @@ class Link:
         '''
         # Update internal clock
         self.curr_time = curr_time
-
-        chosen_timestep = random.randint(0, 1000)
-        if chosen_timestep == 500 and curr_time:
-            self.packet_loss.append([curr_time, 0])
-            self.link_rates.append([curr_time, 0])
 
         # Check traveling packets and see if any packet should arrive
         while len(self.traveling_packets) > 0:
@@ -158,10 +155,21 @@ class Link:
         self.transmit_packet()
 
         # use this so that we dont get every point
-        if chosen_timestep == 500 and self.curr_time != 0:
-            if self.link_rates[len(self.link_rates) - 1][0] - self.link_rates[len(self.link_rates) - 2][0] != 0:
-                self.link_rates[len(self.link_rates) - 1][1] /= \
-                    (self.link_rates[len(self.link_rates) - 1][0] - self.link_rates[len(self.link_rates) - 2][0])
-                self.buffer_occupancy.append([curr_time, len(self.buffer)])
+        if self.network.counter % 1000 == 0:
+
+            if len(self.link_rates) > 1:
+                prev_time = curr_time - (1000 * self.network.timestep)
+                self.link_rates.append([prev_time, 0])
+            self.link_rates.append([curr_time, 0])
+
+            # Update the previous values
+            if len(self.link_rates) - 4 > 0:
+                self.link_rates[len(self.link_rates) - 4][1] /= (1000 * self.network.timestep)
+                self.link_rates[len(self.link_rates) - 3][1] /= (1000 * self.network.timestep)
+
+            self.buffer_occupancy.append([curr_time, len(self.buffer)])
+
+            self.packet_loss.append([curr_time, 0])
+            self.packet_loss.append([curr_time + 1000 * self.network.timestep, 0])
 
 

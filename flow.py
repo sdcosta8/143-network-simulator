@@ -73,7 +73,7 @@ class Flow:
         self.num_packets_received = 0
 
         # Flow rate of the bits recived per time step
-        self.flow_rates = [[0, 0]]
+        self.flow_rates = []
 
         # Protocol, "RENO" or "FAST"
         self.protocol = "RENO"
@@ -322,7 +322,7 @@ class Flow:
                       "is in unknown phase of RENO: '" + self.tcp_phase + "'")
 
         
-        self.window_size.append([self.curr_time, self.window])
+       
 
 
     # def all_packets_received(self):
@@ -387,13 +387,14 @@ class Flow:
             self.check_for_timeouts()
         
         # use this so that we dont get every point
-        if random.randint(0, 1000) == 500 and curr_time != 0:
-            prev_time = self.flow_rates[len(self.flow_rates) - 1][0]
-            if (prev_time - curr_time != 0):
-                prev_time = self.flow_rates[len(self.flow_rates) - 1][0]
-                self.flow_rates.append([curr_time, (self.num_packets_received * PACKET_SIZE) / \
-                    (curr_time - prev_time)])
-                self.num_packets_received = 0 
+        if self.network.counter % 1000 == 0:
+            self.window_size.append([self.curr_time, self.window]) 
+            if len(self.flow_rates) != 0:
+                self.flow_rates.append([curr_time - (1000 * self.network.timestep), \
+                    (self.num_packets_received * PACKET_SIZE) / 1000 * self.network.timestep])
+            self.flow_rates.append([curr_time, (self.num_packets_received * PACKET_SIZE) / \
+                1000 * self.network.timestep])
+            self.num_packets_received = 0 
         
         
             

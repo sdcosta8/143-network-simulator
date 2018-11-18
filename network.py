@@ -20,6 +20,7 @@ class Network:
         self.curr_time = 0
         self.is_running = False
         self.timestep = 0
+        self.counter = 0
 
     def create_flow(self, size, source, destination, spawn_time, window, flow_id):
         flow = Flow(size, source, destination, spawn_time, window,
@@ -90,5 +91,7 @@ class Network:
                 self.is_running = False
 
             self.curr_time += self.timestep
+            self.counter += 1
+
 
     
