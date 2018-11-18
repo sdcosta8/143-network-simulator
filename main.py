@@ -201,9 +201,6 @@ if __name__ == '__main__':
     # Start the network!
     network.run_network()
 
-    # Start the network! 
-    network.run_network()
-
     # Get the values for the calculations each link keeps track of 
     links_list = network.links.items()
     packet_loss_dicts = []
