@@ -152,7 +152,7 @@ class Flow:
 
             # Update window size based on protocol
             self.update_flow_control_ack()
-            if True:
+            if DEBUG:
                 print("", self.tcp_phase, self.curr_time,
                 " ack", pkt.expecting_packet - 1, "W:", self.window,
                 "repeated ack:", self.repeated_ack_count)
@@ -172,7 +172,8 @@ class Flow:
             if DEBUG:
                 print(" host no", self.destination.id,
                       "received packet number", pkt.packet_no,
-                      "of flow", pkt.flow.id, "from host no", pkt.source.id)
+                      "of flow", pkt.flow.id, "from host no", pkt.source.id,
+                      self.curr_time)
 
             # Create an acknowledgement for the packet
             ack_packet = self.network.create_packet(
@@ -269,7 +270,7 @@ class Flow:
             self.tcp_phase = "SS"
 
         self.window_size.append([self.curr_time, self.window])
-        if True:
+        if DEBUG:
             print(" Timeout", self.curr_time, " W:", self.window, "ssthresh:",
                   self.ssthresh, "repeated ack:", self.repeated_ack_count)
 
@@ -282,7 +283,7 @@ class Flow:
         if self.protocol == "RENO":
 
             # Reset rto timer upon successful ack
-            if self.repeated_ack_count < 3:
+            if self.repeated_ack_count == 0:
                 self.rto_timer = self.curr_time
                 
             if self.tcp_phase == "SS":
@@ -292,14 +293,15 @@ class Flow:
                     self.window = self.ssthresh
                     self.tcp_phase = "CA"
                 else:
-                    # still SS, increment window
-                    self.window += 1
+                    if self.repeated_ack_count == 0:
+                        # still SS, increment window
+                        self.window += 1
                 
             elif self.tcp_phase == "CA":
                 # in congestion avoidance CA (linear) phase
-                if self.repeated_ack_count < 3:
+                if self.repeated_ack_count == 0:
                     self.window += 1 / self.window
-                else:
+                elif self.repeated_ack_count >= 3:
                     # 3 duplicate ack, enter frfr
                     self.ssthresh = max(self.window / 2, 2)
                     self.window = self.ssthresh + 3
@@ -314,8 +316,9 @@ class Flow:
                     self.window = self.ssthresh
                     self.tcp_phase = "CA"
                 else:
-                    # still in frfr, increase exponentially
-                    self.window += 1
+                    if self.repeated_ack_count == 0:
+                        # still in frfr, increase exponentially
+                        self.window += 1
 
             else:
                 print("flow id", self.id, 
