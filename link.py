@@ -113,6 +113,11 @@ class Link:
         Takes a packet that is popped from the buffer and schedule it for
         transimision.
         '''
+        if packet.packet_type == MESSAGE:
+            packet.current_cost += self.prop_time
+            # add the dynamic cost to the packet
+            ##TODO
+            # packet.current_cost += self.dynamic_cost
         arrival_time = self.curr_time + self.prop_time
         self.traveling_packets.append((arrival_time, packet))
 
@@ -125,6 +130,7 @@ class Link:
         # Tell connection2 that the packet has arrived
         self.connection2.receive_packet(packet)
         packet.curr_pos = self.connection2
+        packet.prev_link = self
         # TODO: The dynamic cost of the link should be updated
 
 

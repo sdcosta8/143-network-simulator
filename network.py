@@ -7,6 +7,13 @@ from utils import (
     DEBUG, RENO,
     PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
 )
+def get_connections(self):
+    for router in self.routers.items():
+        router_obj = router[1]
+        dic = {}
+        for link in router_obj.outgoing_links:
+            dic[link.connection2] = link
+    return dic
 
 class Network:
 
@@ -63,16 +70,24 @@ class Network:
                         packet_info, packet_no, last_packet, expecting_packet)
         return packet
 
+    def generate_messages(self):
+        for router in self.routers.items():
+            router_id = router[0]
+            router_obj = router[1]
+            router_obj.send_messages()
     def run_network(self):
         '''
         Call and run all components of the network
         '''
+        self.generate_messages()
         self.is_running = True
         while self.is_running:
             if DEBUG:
                 print("current time:", self.curr_time)
+            '''    
             for _, flow in self.flows.items():
                 flow.run(self.curr_time)
+                '''
             for _, host in self.hosts.items():
                 host.run(self.curr_time)
             for _, router in self.routers.items():

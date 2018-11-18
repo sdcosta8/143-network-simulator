@@ -48,7 +48,9 @@ class Router:
         self.curr_time = None
 
         # list of neighboring hosts/routers
-        self.neighbors = []
+        self.neighbors = None
+    
+    
     
         
     def update_routing_table(self):
@@ -58,15 +60,9 @@ class Router:
         in the network. It will use message passing between routers and the 
         Bellman Ford algorithm to figure out what the routing table will be.
         '''
-        # Perform the minimum spanning tree protocol??
-        
-        # Get the sum of the dynamic and static cost of all the links
-        
-        # Preform the bell man ford algorithm to update the routing table
-        
-        # Unclear how often this function will be preformed.
-        
-        pass
+        # Get each host to generate a packet
+        self.network.generate_messages()
+
     
     def send_packet(self):
         '''
@@ -78,23 +74,41 @@ class Router:
         # to place them on by looking up their destinations in the routing 
         # table	
         # TODO: WTF WTF WTF????
-        for packet in self.outgoing_packets:
-        
-            # Delete the packet from the outgoing queue
-            self.outgoing_packets.remove(packet)
-            
-            # Find the link to use to send the packet
-            chosen_link = self.routing_table[packet.destination.ip]
-            
-            # We want to send the packet by adding it to the link's buffer
-            chosen_link.add_packets(packet)
+        for packet in list(self.outgoing_packets):
+            if packet.packet_type == MESSAGE:
+                packet.destination.add_packets([packet])
+                # Delete the packet from the outgoing queue
+                self.outgoing_packets.remove(packet)                
                 
-            # Update the current position to be the link
-            self.curr_pos = chosen_link
+            else:
+                # Delete the packet from the outgoing queue
+                self.outgoing_packets.remove(packet)                
+                # Find the link to use to send the packet
+                chosen_link = (self.routing_table[packet.destination.ip])[1]
+                
+                # We want to send the packet by adding it to the link's buffer
+                chosen_link.add_packets(packet)
+                    
+                # Update the current position to be the link
+                packet.curr_pos = chosen_link
+                
+                if DEBUG:
+                    print("sent packet = " + str(packet.id) + "of flow id = " + str(packet.id))
+                    print("from router " +  str(self.id))
+        
+    def send_messages(self):
+        # Create the message from the host
+        # Need to ask about the destination
+        for link in self.outgoing_links: 
+            message = self.network.create_packet(
+            MESSAGE_SIZE, MESSAGE,
+            self, link, self.curr_time,
+            False, self)
             
+            self.outgoing_packets.append(message)
             if DEBUG:
-                print("sent packet = " + packet.id + "of flow id = " + packet.id)
-                print("from router " +  self.id)
+                print("Created message for router_id " + str(self.id) + " and sent it to link_id " + str(link.id)) 
+            
         
     def receive_packet(self, pkt):
         '''
@@ -107,32 +121,44 @@ class Router:
         # Check if the received packet is a message, we want to basically check
         # the minimum spanning tree protocol and send a new packet
         if pkt.packet_type == 2:
-            #### Get the previous link that the pkt was sent from
+            # get node that message as originated from
+            orgin = pkt.source
             
-            info = pkt.packet_info
-            # from_ip_address = info[0]
-            root = info[1]
-            distance_from_root = info[2]
+            if DEBUG:
+                print("recieved message with distance of " + str(packet.current_cost) + "from router_id" + str(packet.source.id))
+                
+            # if the host does not exist in the routing table or the distance to 
+            # this distination is shorter 
+            if orgin.id not in self.routing_table or (self.routing_table[orgin])[1] > pkt.current_cost:
+                self.routing_table[orgin] = [pkt.prev_link, pkt.current_cost]    
+                      
+            else:
+                # we didn't update the routing table so we don't want to forward
+                # this info
+                return
             
-            if root < self.root:
-                # update the info that the router sees 
-                self.root = root
-                self.distance = distance_from_root + 1
-            
-            info = [self.id, self.root, self.distance]
-            
-            # find the routers that the router is connected to and send this 
-            # info
-            # for routers in neighboring_routers:
-            #     #### TODO ROUTER Minimum spanning tree protocol
-            #     pass
-            
-        # Update the current postion of the packet to the current router
-        pkt.curr_pos = self
-        pkt.in_transit = 1
+            for link in outgoing_links:
+                if link != pkt.prev_link:
+                    message = self.network.create_packet(MESSAGE_SIZE, MESSAGE,
+                                                         pkt.source, link, self.curr_time,
+                                                         False, self)  
+                    message.current_cost = pkt.current_cost
+                    # Update the current postion of the packet to the current router
+                    message.curr_pos = self
+                    message.in_transit = 1
+                    
+                    # then it will place the packet in its outgoing packets queue
+                    self.outgoing_packets.append(message)  
+                    print("Transmitted message for router_id " + str(message.id) +
+                          " from router " + str(self.id) + "to and sent it to link_id " + str(link.id))
         
-        # then it will place the packet in its outgoing packets queue
-        self.outgoing_packets.append(pkt)
+        else:
+            # Update the current postion of the packet to the current router
+            pkt.curr_pos = self
+            pkt.in_transit = 1
+            
+            # then it will place the packet in its outgoing packets queue
+            self.outgoing_packets.append(pkt)
         
     
     def run(self, curr_time):
@@ -144,4 +170,4 @@ class Router:
         self.curr_time = curr_time
         
         self.send_packet()
-        self.update_routing_table()
+        #self.update_routing_table()

@@ -41,6 +41,8 @@ class Host:
         # Field to keep track of current time
         self.curr_time = None
 
+        
+    
     def receive_packet(self, pkt):
         '''
         Called by the link.

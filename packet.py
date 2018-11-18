@@ -68,3 +68,7 @@ class Packet:
         
         # Time in received packets queue
         self.time_in_queue = None
+
+        self.current_cost = 0
+        
+        self.prev_link = None
