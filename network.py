@@ -22,6 +22,9 @@ class Network:
         self.timestep = 0
         self.counter = 0
 
+        # Each link will have mapping to its corresponding link 
+        self.correspond_links = {}
+
     def create_flow(self, size, source, destination, spawn_time, window, flow_id):
         flow = Flow(size, source, destination, spawn_time, window,
                     flow_id, self)

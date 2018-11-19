@@ -72,8 +72,7 @@ class Router:
         '''
     
         # For each packet about to be sent the router should look up which link 
-        # to place them on by looking up their destinations in the routing 
-        # table	
+        # to place them on by looking up their destinations in the routing table	
         # TODO: WTF WTF WTF????
         for packet in list(self.outgoing_packets):
             if packet.packet_type == MESSAGE:
@@ -137,7 +136,7 @@ class Router:
     
         # Check if the received packet is a message, we want to basically check
         # the minimum spanning tree protocol and send a new packet
-        if pkt.packet_type == 2:
+        if pkt.packet_type == MESSAGE:
             # get node that message as originated from
             orgin = pkt.source
             
@@ -151,8 +150,9 @@ class Router:
             
             # if the host does not exist in the routing table or the distance to 
             # this distination is shorter 
-            if orgin not in self.routing_table or (self.routing_table[orgin])[1] > pkt.current_cost:
-                self.routing_table[orgin] = [pkt.prev_link, pkt.current_cost]    
+            if (orgin not in self.routing_table or (self.routing_table[orgin])[1] > pkt.current_cost) and \
+            self != orgin:
+                self.routing_table[orgin] = [self.network.correspond_links[pkt.prev_link], pkt.current_cost]    
             
             else:
                 # we didn't update the routing table so we don't want to forward
@@ -173,7 +173,7 @@ class Router:
             
             
             for link in self.outgoing_links:
-                if link != pkt.prev_link:
+                if link != self.network.correspond_links[pkt.prev_link]:
                     message = self.network.create_packet(MESSAGE_SIZE, MESSAGE,
                                                          pkt.source, self.neighbors[link], self.curr_time,
                                                          False, self)  

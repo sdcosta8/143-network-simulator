@@ -107,6 +107,8 @@ if __name__ == '__main__':
             convert_to_bits(float(link["buff_size"]), KB), \
             convert_to_bits(float(link["link_rate"]), Mb), \
             convert_to_seconds(float(link["prop_delay"])), highest_link_id + 1)
+        network.correspond_links[new_link_1] = new_link_2
+        network.correspond_links[new_link_2] = new_link_1
         highest_link_id += 1
 
         if isinstance(src, Host):
@@ -123,6 +125,7 @@ if __name__ == '__main__':
             sink.outgoing_links.append(new_link_2)
             sink.incoming_links.append(new_link_1) 
             sink.neighbors.append(src)
+
 
 
     # In Debug mode, we want to print out all the fields we set at initialization
@@ -197,6 +200,7 @@ if __name__ == '__main__':
         lst_link_prop.append(links[1].prop_time)    
     timestep = find_time_step(lst_link_rate, lst_link_prop)
     network.timestep = timestep
+
 
     # Start the network!
     network.run_network()
