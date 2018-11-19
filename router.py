@@ -1,4 +1,5 @@
 from collections import deque
+from host import Host
 from utils import (
     DEBUG, RENO,
     PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
@@ -48,7 +49,7 @@ class Router:
         self.curr_time = None
 
         # list of neighboring hosts/routers
-        self.neighbors = None
+        self.neighbors = []
     
     
     
@@ -76,9 +77,20 @@ class Router:
         # TODO: WTF WTF WTF????
         for packet in list(self.outgoing_packets):
             if packet.packet_type == MESSAGE:
-                packet.destination.add_packets([packet])
+                packet.prev_link.add_packets([packet])
                 # Delete the packet from the outgoing queue
-                self.outgoing_packets.remove(packet)                
+                self.outgoing_packets.remove(packet)
+                if isinstance(packet.destination, Host):
+                    print("Sent message destined for Host " +
+                          str(packet.destination.id) + 
+                          " and sent it from router " + str(self.id) +
+                          " with original starting point being Router" + str(packet.source.id) +
+                          " via link " + str(packet.prev_link.id)) 
+                else:
+                    print("Sent message destined for Router " + str(packet.destination.id) +  " with original starting point being Router" + 
+                          str(packet.source.id) + \
+                          " and sent it from router " + str(self.id) + \
+                          " via link " + str(packet.prev_link.id))
                 
             else:
                 # Delete the packet from the outgoing queue
@@ -97,17 +109,22 @@ class Router:
                     print("from router " +  str(self.id))
         
     def send_messages(self):
-        # Create the message from the host
-        # Need to ask about the destination
+        # Create the message from the host spawn it for all directions that the 
+        # router is connected to
         for link in self.outgoing_links: 
-            message = self.network.create_packet(
-            MESSAGE_SIZE, MESSAGE,
-            self, link, self.curr_time,
-            False, self)
-            
+            message = self.network.create_packet(MESSAGE_SIZE, MESSAGE,
+                                                self, self.neighbors[link], self.curr_time,
+                                                False, self)  
+            message.prev_link = link
             self.outgoing_packets.append(message)
             if DEBUG:
-                print("Created message for router_id " + str(self.id) + " and sent it to link_id " + str(link.id)) 
+                if isinstance(self.neighbors[link], Host):
+                    print("Created message destined for Host " + str(self.neighbors[link].id) + " and sent it from router " + str(self.id) + " via link " + str(link.id)) 
+                else:
+                    print("Created message destined for Router " +
+                          str(self.neighbors[link].id) + 
+                          " and sent it from router " + str(self.id) + 
+                          " via link " + str(link.id))                     
             
         
     def receive_packet(self, pkt):
@@ -125,32 +142,57 @@ class Router:
             orgin = pkt.source
             
             if DEBUG:
-                print("recieved message with distance of " + str(packet.current_cost) + "from router_id" + str(packet.source.id))
-                
+                    print("Received message destined for Router " +
+                          str(pkt.destination.id) + 
+                          " which was sent originally from Router " + str(pkt.source.id) + 
+                          " and sent from Router " + str(self.neighbors[pkt.prev_link].id) +
+                          " via link " + str(pkt.prev_link.id) + " with a cost of "
+                          + str(pkt.current_cost)) 
+            
             # if the host does not exist in the routing table or the distance to 
             # this distination is shorter 
-            if orgin.id not in self.routing_table or (self.routing_table[orgin])[1] > pkt.current_cost:
+            if orgin not in self.routing_table or (self.routing_table[orgin])[1] > pkt.current_cost:
                 self.routing_table[orgin] = [pkt.prev_link, pkt.current_cost]    
-                      
+            
             else:
                 # we didn't update the routing table so we don't want to forward
                 # this info
                 return
             
-            for link in outgoing_links:
+            print(" -----Table for router " + str(self.id))
+            lst = self.routing_table.items()
+            for item in lst:
+                if isinstance(item[0], Host):
+                    print("Host = " + str(item[0].id) + " via link " + 
+                          str((item[1])[0].id) + " with a cost of " + str(item[1][1]))
+                else:
+                
+                    print("Router = " + str(item[0].id) + " via link " + 
+                            str((item[1])[0].id) + " with a cost of " + str(item[1][1]))                    
+            print('')            
+            
+            
+            for link in self.outgoing_links:
                 if link != pkt.prev_link:
                     message = self.network.create_packet(MESSAGE_SIZE, MESSAGE,
-                                                         pkt.source, link, self.curr_time,
+                                                         pkt.source, self.neighbors[link], self.curr_time,
                                                          False, self)  
                     message.current_cost = pkt.current_cost
                     # Update the current postion of the packet to the current router
                     message.curr_pos = self
                     message.in_transit = 1
                     
+                    message.prev_link = link
+                    
                     # then it will place the packet in its outgoing packets queue
                     self.outgoing_packets.append(message)  
-                    print("Transmitted message for router_id " + str(message.id) +
-                          " from router " + str(self.id) + "to and sent it to link_id " + str(link.id))
+                    print("Transmitted message destined for Router " +
+                          str(message.destination.id) + 
+                          " which was sent originally from Router " + str(message.source.id) + 
+                          " and sent from Router " + str(self.id) +
+                          " via link " + str(link.id) + " with a cost of " +
+                          str(message.current_cost)) 
+                
         
         else:
             # Update the current postion of the packet to the current router

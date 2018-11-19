@@ -7,13 +7,6 @@ from utils import (
     DEBUG, RENO,
     PACKET_SIZE, ACK_SIZE, MESSAGE_SIZE, PACKET, ACK, MESSAGE
 )
-def get_connections(self):
-    for router in self.routers.items():
-        router_obj = router[1]
-        dic = {}
-        for link in router_obj.outgoing_links:
-            dic[link.connection2] = link
-    return dic
 
 class Network:
 
@@ -71,19 +64,30 @@ class Network:
         return packet
 
     def generate_messages(self):
+        # Create a dictionary in the router data field neighbors with a key link
+        # and the value being a host or router variable
         for router in self.routers.items():
+            dic = {}
             router_id = router[0]
             router_obj = router[1]
+            for link in router_obj.outgoing_links:
+                dic[link] = link.connection2
+            for link in router_obj.incoming_links:
+                dic[link] = link.connection1                
+            router_obj.neighbors = dic
+        for router in self.routers.items():
+            router_obj = router[1]        
             router_obj.send_messages()
+            
     def run_network(self):
         '''
         Call and run all components of the network
         '''
         self.generate_messages()
         self.is_running = True
-        while self.is_running:
-            if DEBUG:
-                print("current time:", self.curr_time)
+        while self.is_running and self.counter < 10000:
+            #if DEBUG:
+            #   print("current time:", self.curr_time)
             '''    
             for _, flow in self.flows.items():
                 flow.run(self.curr_time)
@@ -107,6 +111,21 @@ class Network:
 
             self.curr_time += self.timestep
             self.counter += 1
+        for router in self.routers.items():
+            dic = {}
+            router_id = router[0]
+            router_obj = router[1]
+            lst= router_obj.routing_table.items()
+            print(" -----Table for router " + str(router_obj.id))
+            for item in lst:
+                if isinstance(item[0], Host):
+                    print("Host = " + str(item[0].id) + " via link " + 
+                          str((item[1])[0].id) + " with a cost of " + str(item[1][1]))
+                else:
+                
+                    print("Router = " + str(item[0].id) + " via link " + 
+                            str((item[1])[0].id) + " with a cost of " + str(item[1][1]))                    
+            print('')
 
 
     

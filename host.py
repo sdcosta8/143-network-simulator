@@ -48,7 +48,13 @@ class Host:
         Called by the link.
         Receives a packet. Calls the flow's receive packet function
         '''
-        pkt.flow.receive_packet(pkt)
+        if pkt.packet_type == MESSAGE:
+            if DEBUG:
+                print(" host " + str(self.id) + " received message from " +
+                      str(pkt.source.id) + " with cost of " + str(pkt.current_cost))
+            return        
+        else:
+            pkt.flow.receive_packet(pkt)
 
     def run(self, curr_time):
         '''
