@@ -91,11 +91,13 @@ if __name__ == '__main__':
 
         if link["source"][0] == "H":
             src = network.hosts[int(link["source"][1])]
+            src.router = network.routers[int(link["sink"][1])]
         else:
             src = network.routers[int(link["source"][1])]
 
         if link["sink"][0] == "H":
             sink = network.hosts[int(link["sink"][1])]
+            sink.router = network.routers[int(link["source"][1])]
         else:
             sink = network.routers[int(link["sink"][1])]
 
@@ -158,6 +160,7 @@ if __name__ == '__main__':
             print("    ID of Flows from Host:")
             for flow in host[1].flows:
                 print("    " + str(flow.id))
+            print("    ID of connected router: " + str(host[1].router.ip))
 
         routers_list = list(network.routers.items())
         if (len(routers_list) > 0):

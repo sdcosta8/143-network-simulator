@@ -41,6 +41,8 @@ class Host:
         # Field to keep track of current time
         self.curr_time = None
 
+        # Keep track of the router that the host is attached to 
+        self.router = None
         
     
     def receive_packet(self, pkt):

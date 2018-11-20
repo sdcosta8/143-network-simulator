@@ -81,20 +81,55 @@ class Network:
         for router in self.routers.items():
             router_obj = router[1]        
             router_obj.send_messages()
+
+        # Have hosts send messages too. This is necessary since packets know which 
+        # host is their destination but don't know which router to take to get there
             
     def run_network(self):
         '''
         Call and run all components of the network
         '''
+
+        # The initial routing table will be created before the 
+        # non-message packets are sent. we will use this flag to
+        # make sure that it is set initially
+        init_routing_tables = False
+
         self.generate_messages()
         self.is_running = True
-        while self.is_running and self.counter < 10000:
+        while self.is_running:
+
+            # We use this block to make sure that there is an 
+            # initial routing table before the flows start
+            if not init_routing_tables:
+                host_list = self.hosts.values()
+                init_routing_tables = True
+                routers = list(self.routers.values())
+                for router in routers:
+                    if len(router.next_routing_table) != len(routers) - 1:
+                        init_routing_tables = False
+                        break
+                # Update the routing tables and start the next iteration of 
+                # message passing! 
+                if init_routing_tables:
+                    for router in routers:
+                        router.update_routing_table(self.hosts.values())
+                    self.generate_messages()
+
+        
+            # This should be approximately every 5 seconds. Update the routing
+            # table for each router and start sending packets
+            if self.counter % 250000 == 0 and self.counter != 0:
+                print("updating routing table")
+                print("time" + str(self.curr_time))
+                routers = list(self.routers.values())
+                for router in routers:
+                    router.update_routing_table(self.hosts.values())
+                self.generate_messages()
+
+
             #if DEBUG:
             #   print("current time:", self.curr_time)
-            '''    
-            for _, flow in self.flows.items():
-                flow.run(self.curr_time)
-                '''
             for _, host in self.hosts.items():
                 host.run(self.curr_time)
             for _, router in self.routers.items():
@@ -111,24 +146,26 @@ class Network:
             if all_finished:
                 print("All flows finished!")
                 self.is_running = False
-
+            
             self.curr_time += self.timestep
             self.counter += 1
+
         for router in self.routers.items():
             dic = {}
             router_id = router[0]
             router_obj = router[1]
             lst= router_obj.routing_table.items()
-            print(" -----Table for router " + str(router_obj.id))
-            for item in lst:
-                if isinstance(item[0], Host):
-                    print("Host = " + str(item[0].id) + " via link " + 
-                          str((item[1])[0].id) + " with a cost of " + str(item[1][1]))
-                else:
-                
-                    print("Router = " + str(item[0].id) + " via link " + 
-                            str((item[1])[0].id) + " with a cost of " + str(item[1][1]))                    
-            print('')
-
+            if DEBUG:
+                print(" -----Table for router " + str(router_obj.id))
+                for item in lst:
+                    if isinstance(item[0], Host):
+                        print("Host = " + str(item[0].id) + " via link " + 
+                              str((item[1])[0].id) + " with a cost of " + str(item[1][1]))
+                    else:
+                    
+                        print("Router = " + str(item[0].id) + " via link " + 
+                                str((item[1])[0].id) + " with a cost of " + str(item[1][1]))                    
+                print('')
+        print(self.curr_time)
 
     
