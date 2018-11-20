@@ -82,18 +82,17 @@ class Router:
                 self.routing_table[host] = [host.incoming_link, 0]
         self.next_routing_table = {}
 
-        if DEBUG:
-            print(" -----Table for router " + str(self.id))
-            lst = self.routing_table.items()
-            for item in lst:
-                if isinstance(item[0], Host):
-                    print("Host = " + str(item[0].id) + " via link " + 
-                          str((item[1])[0].id) + " with a cost of " + str(item[1][1]))
-                else:
-                
-                    print("Router = " + str(item[0].id) + " via link " + 
-                            str((item[1])[0].id) + " with a cost of " + str(item[1][1]))                    
-            print('')         
+        print(" -----Table for router " + str(self.id))
+        lst = self.routing_table.items()
+        for item in lst:
+            if isinstance(item[0], Host):
+                print("Host = " + str(item[0].id) + " via link " + 
+                      str((item[1])[0].id) + " with a cost of " + str(item[1][1]))
+            else:
+            
+                print("Router = " + str(item[0].id) + " via link " + 
+                        str((item[1])[0].id) + " with a cost of " + str(item[1][1]))                    
+        print('')         
 
     
     def send_packet(self):

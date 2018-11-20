@@ -66,6 +66,13 @@ class Link:
         self.end_transmit_time = 0
 
 
+    def calculate_dynamic_cost(self):
+        num_bits = 0
+        for packet in self.traveling_packets:
+            num_bits += packet[1].num_bits
+        cost = float(num_bits) / self.capacity
+        return cost + self.prop_time
+
     # This is only called when it's time to transmit a packet
     def transmit_packet(self):
         if self.end_transmit_time <= self.curr_time:
@@ -114,7 +121,7 @@ class Link:
         transimision.
         '''
         if packet.packet_type == MESSAGE:
-            packet.current_cost += self.prop_time
+            packet.current_cost += self.calculate_dynamic_cost()
             # add the dynamic cost to the packet
             ##TODO
             # packet.current_cost += self.dynamic_cost
