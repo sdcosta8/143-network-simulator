@@ -122,6 +122,10 @@ class Network:
             if self.counter % 250000 == 0 and self.counter != 0:
                 print("updating routing table")
                 print("time" + str(self.curr_time))
+                links = list(self.links.values())
+                for link in links:
+                    link.prev_rout = link.routing_pkts
+                    link.routing_pkts = 0
                 routers = list(self.routers.values())
                 for router in routers:
                     router.update_routing_table(self.hosts.values())

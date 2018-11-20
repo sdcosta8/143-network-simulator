@@ -65,12 +65,12 @@ class Link:
         self.curr_pkt_transmit = None
         self.end_transmit_time = 0
 
+        self.routing_pkts = 0
+        self.prev_rout = 0
+
 
     def calculate_dynamic_cost(self):
-        num_bits = 0
-        for packet in self.traveling_packets:
-            num_bits += packet[1].num_bits
-        cost = float(num_bits) / self.capacity
+        cost = float(self.prev_rout) / self.capacity
         return cost + self.prop_time
 
     # This is only called when it's time to transmit a packet
@@ -120,6 +120,7 @@ class Link:
         Takes a packet that is popped from the buffer and schedule it for
         transimision.
         '''
+        self.routing_pkts += packet.num_bits
         if packet.packet_type == MESSAGE:
             packet.current_cost += self.calculate_dynamic_cost()
             # add the dynamic cost to the packet
