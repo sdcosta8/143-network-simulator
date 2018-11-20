@@ -227,7 +227,6 @@ if __name__ == '__main__':
     # Graph the packet loss over time
     add_graph(packet_loss_dicts, network.curr_time, "Packet Loss (pkts)", \
         link_order, 0.01)
-
     # Graph the link rates
     add_graph(link_rate_dicts, network.curr_time, "Link Rate (bps)", \
         link_order, 0.01)

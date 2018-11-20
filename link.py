@@ -70,7 +70,9 @@ class Link:
 
 
     def calculate_dynamic_cost(self):
-        cost = float(self.prev_rout) / self.capacity
+        
+        cost = float(self.routing_pkts) / self.capacity
+        #print(str(self.id) , str(cost + self.prop_time))
         return cost + self.prop_time
 
     # This is only called when it's time to transmit a packet
