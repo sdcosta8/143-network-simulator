@@ -62,7 +62,7 @@ def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
 
 
 if __name__ == '__main__':
-    filename = 'test1.json'
+    filename = 'test0.json'
     network = Network()
 
     with open(filename) as f:
@@ -91,13 +91,13 @@ if __name__ == '__main__':
 
         if link["source"][0] == "H":
             src = network.hosts[int(link["source"][1])]
-            src.router = network.routers[int(link["sink"][1])]
+            # src.router = network.routers[int(link["sink"][1])]
         else:
             src = network.routers[int(link["source"][1])]
 
         if link["sink"][0] == "H":
             sink = network.hosts[int(link["sink"][1])]
-            sink.router = network.routers[int(link["source"][1])]
+            # sink.router = network.routers[int(link["source"][1])]
         else:
             sink = network.routers[int(link["sink"][1])]
 

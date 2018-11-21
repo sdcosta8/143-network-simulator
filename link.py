@@ -30,9 +30,6 @@ class Link:
         # Intialize the link buffer
         self.buffer = deque()
         
-        # Initialize the bit rate
-        self.bit_rate = -1
-        
         # Initialize the static cost, which is the propagation time
         self.prop_time = prop_time
         
@@ -86,7 +83,7 @@ class Link:
                 packet = self.buffer.popleft()
                 self.curr_pkt_transmit = packet
                 self.end_transmit_time = self.curr_time + \
-                    (packet.num_bits / self.bit_rate)
+                    (packet.num_bits / self.capacity)
             else:
                 self.curr_pkt_transmit = None
 
@@ -103,15 +100,15 @@ class Link:
         
         for pkt in packets:
             buffer_used += pkt.num_bits
-            # If we have space, put packet in the buffer
-            if buffer_used < self.queue_capacity:
-                self.buffer.append(pkt)
-            else:
-                # We don't need to do anything with the packet reference, but we 
-                # should keep track that a packet was dropped at this timestamp
-                
-                self.packet_loss[len(self.packet_loss) - 1][1] += 1
-                self.packet_loss[len(self.packet_loss) - 2][1] += 1
+        # If we have space, put packet in the buffer
+        if buffer_used < self.queue_capacity:
+            self.buffer.append(pkt)
+        else:
+            # We don't need to do anything with the packet reference, but we 
+            # should keep track that a packet was dropped at this timestamp
+            
+            self.packet_loss[len(self.packet_loss) - 1][1] += 1
+            self.packet_loss[len(self.packet_loss) - 2][1] += 1
 
             pkt.curr_pos = self
         # TODO: Update the congestion and dynamic cost pf the link and bit rate? 

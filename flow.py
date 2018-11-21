@@ -76,7 +76,7 @@ class Flow:
         self.flow_rates = []
 
         # Protocol, "RENO" or "FAST"
-        self.protocol = "RENO"
+        self.protocol = ""
         # Current phase for RENO: "SS", "CA", "FR"
         self.tcp_phase = "SS"
         # ssthresh for RENO
