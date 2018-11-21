@@ -134,9 +134,6 @@ class Router:
                 # Update the current position to be the link
                 packet.curr_pos = chosen_link
                 
-                if DEBUG:
-                    print("sent packet = " + str(packet.id) + "of flow id = " + str(packet.id))
-                    print("from router " +  str(self.id))
         
     def send_messages(self):
         # Create the message from the host spawn it for all directions that the 

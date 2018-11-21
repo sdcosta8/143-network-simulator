@@ -1,5 +1,5 @@
 # Flag for debug mode
-DEBUG = True
+DEBUG = False
 
 # Unit conversions
 MB = 0
@@ -7,7 +7,7 @@ KB = 1
 Mb = 2
 
 # Flags for window size protocal
-RENO = False
+RENO = True
 
 # Packet types
 PACKET = 0
