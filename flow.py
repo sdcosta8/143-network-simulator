@@ -6,7 +6,7 @@ import random
 
 class Flow:
 
-    def __init__(self, size, source, destination, time_spawn, window,
+    def __init__(self, size, source, destination, time_spawn, window, protocol,
                  id, network):
 
         # The total size of the flow. Lets represent this in bits
@@ -75,8 +75,8 @@ class Flow:
         # Flow rate of the bits recived per time step
         self.flow_rates = []
 
-        # Protocol, "RENO" or "FAST"
-        self.protocol = ""
+        # Protocol, "", "RENO" or "FAST"
+        self.protocol = protocol
         # Current phase for RENO: "SS", "CA", "FR"
         self.tcp_phase = "SS"
         # ssthresh for RENO

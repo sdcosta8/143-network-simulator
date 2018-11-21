@@ -16,7 +16,8 @@
             "start_time": "1",
             "source": "1",
             "dest": "2",
-            "window": "1"
+            "window": "1",
+            "protocol": ""
         }
     ],
     "hosts": [

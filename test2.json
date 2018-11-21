@@ -80,7 +80,8 @@
             "start_time": "0.5",
             "source": "0",
             "dest": "1",
-            "window": "1"
+            "window": "1",
+            "protocol": ""
         }, 
         {
             "id": "2",
@@ -88,7 +89,8 @@
             "start_time": "10",
             "source": "2",
             "dest": "3",
-            "window": "1"
+            "window": "1",
+            "protocol": ""
         }, 
         {
             "id": "3",
@@ -96,7 +98,8 @@
             "start_time": "20",
             "source": "4",
             "dest": "5",
-            "window": "1"
+            "window": "1",
+            "protocol": ""
         }
     ],
     "hosts": [

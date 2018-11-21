@@ -79,10 +79,13 @@ if __name__ == '__main__':
     for flow in net_data["flows"]:
         src = network.hosts[int(flow["source"])]
         dest = network.hosts[int(flow["dest"])]
-        new_flow = network.create_flow(\
-            convert_to_bits(float(flow["data_amount"]), MB), src, dest, \
-            float(flow["start_time"]), float(flow["window"]), \
-                int(flow["id"]))
+        new_flow = network.create_flow(
+            convert_to_bits(float(flow["data_amount"]), MB),
+            src, dest,
+            float(flow["start_time"]),
+            float(flow["window"]),
+            flow["protocol"],
+            int(flow["id"]))
         src.flows.append(new_flow)
 
     # Keep track of this so we can add links going the opposite direction
