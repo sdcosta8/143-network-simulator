@@ -62,7 +62,7 @@ def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
 
 
 if __name__ == '__main__':
-    filename = 'test0.json'
+    filename = sys.argv[1]
     network = Network()
 
     with open(filename) as f:
