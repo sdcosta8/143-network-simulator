@@ -81,6 +81,8 @@ class Flow:
         self.tcp_phase = "SS"
         # ssthresh for RENO
         self.ssthresh = float("inf")
+        # alpha for FAST
+        self.alpha = 1
 
         # Most current round trip time
         self.rtt = float("inf")
@@ -132,11 +134,9 @@ class Flow:
         if pkt.packet_type == ACK:
 
             # Calculate RTT and update RTO
-            if ((pkt.expecting_packet - 1) in self.sent_times and
-               self.tcp_phase == "CA"):
-                # Note that time_spawn of ack is of time spawn of original pkt
-                self.rtt = self.curr_time - pkt.time_spawn
-                self.update_rto()
+            # Note that time_spawn of ack is of time spawn of original pkt
+            self.rtt = self.curr_time - pkt.time_spawn
+            self.update_rto()
 
             # Update the flow's duplicate ack info
             if self.expecting_packet == pkt.expecting_packet:
@@ -201,34 +201,6 @@ class Flow:
             self.update_flow_control_rto()
             self.window_size.append([self.curr_time, self.window])
 
-        # # Find the minimum packet that has timed out
-        # min_timeout_no = None
-        # for packet_no, sent_time in self.sent_times.items():
-        #     if packet_no < self.expecting_packet:
-        #         # If the packet is not acked
-        #         if (self.curr_time - sent_time > self.rto and
-        #             (min_timeout_no is None or packet_no < min_timeout_no)):
-        #             # If the packet is not acked and has timed out
-        #             min_timeout_no = packet_no
-        
-        # # If something has timed out
-        # if min_timeout_no is not None:
-        #     print(min_timeout_no)
-        #     print(self.id)
-        #     print(self.source.id)
-        #     self.next_packet_to_send = min_timeout_no
-        #     self.window = 1
-        #     with open('timeouts.txt', 'a') as the_file:
-        #         the_file.write(" pkt no "+ str(min_timeout_no) + " flow " + str(self.id)\
-        #                        + " has timed out and was placed in host" + str(self.source.id)+\
-        #                        " s outgoing queue to be sent" + " time out time " 
-        #                        + str(self.curr_time) + 
-        #                        " \n")                      
-        #     if DEBUG:
-        #         print(" pkt no "+ str(min_timeout_no) + " flow " + str(self.id)\
-        #          + " has timed out and was placed in host" + str(self.source.id)+\
-        #          " s outgoing queue to be sent")
-
 
     def calc_send_receive_rate(self):
         '''
@@ -238,19 +210,13 @@ class Flow:
         pass 
 
 
-    def calc_RT_delay(self):
-        '''
-        The delta between the flow initialized and a packet's acknowledgement
-        being received by the host that initialized the flow
-        '''
-        # TODO
-        pass
-
     def update_rto(self):
         '''
         Update retransmission timeout time based on the most current RTT.
+        Upperbound = 60 sec
+        Lowerbound = 1 sec
         '''
-        self.rto = self.rtt * 2
+        self.rto = min(60, max(1, self.rtt * 2))
         if DEBUG:
             print(" update_rto RTO:", self.rto)
 
@@ -323,50 +289,11 @@ class Flow:
             else:
                 print("flow id", self.id, 
                       "is in unknown phase of RENO: '" + self.tcp_phase + "'")
+        
+        elif self.protocol == "FAST":
+            pass
 
-        
-       
 
-
-    # def all_packets_received(self):
-    #     '''
-    #     Check if all packets are in finished_packets (ack received)
-    #     Return True/False
-    #     '''
-    #     return self.
-    #     # Get unique list of finished packets
-    #     packets_received_ack = list(set(self.finished_packets))
-        
-    #     # Sort the list of received packets in place by their packet number
-    #     packets_received_ack.sort(key=lambda x: x.packet_no, reverse=True)
-        
-    #     # Check if all the packets are received
-    #     all_received = self.num_packets == len(packets_received_ack)
-    #     if DEBUG:
-    #         # Find the packets missing (1 indexed)
-    #         missed_pkt_num =[]
-    #         i = 0
-    #         for num in range(1, self.num_packets+1):
-    #             if (len(packets_received_ack) <= i or 
-    #             packets_received_ack[i].packet_num != num):
-    #                 missed_pkt_num.append(num)
-    #             else:
-    #                 i += 1
-    #         # Check if the result is consistent with quick length check
-    #         if (len(missed_pkt_num) == 0) != all_received:
-    #             print("ALL RECEIVED DOES NOT AGREE WITH TRAVERSAL CHECK.")
-            
-    #         # Print info about missed packets
-    #         if len(missed_pkt_num) > 0:
-    #             print("packet no", end=" ")
-    #             for num in missed_pkt_num:
-    #                 print(num, end=" ")
-    #             print("is missing of flow no", self.id)
-    #         else:
-    #             print("All packets for flow no", self.id, "are received")
-        
-    #     return all_received
-        
     def run(self, curr_time):
         '''
         Called by the network at every interruption

@@ -17,7 +17,7 @@
             "source": "1",
             "dest": "2",
             "window": "1",
-            "protocol": ""
+            "protocol": "RENO"
         }
     ],
     "hosts": [

@@ -71,7 +71,6 @@ class Network:
         # and the value being a host or router variable
         for router in self.routers.items():
             dic = {}
-            router_id = router[0]
             router_obj = router[1]
             for link in router_obj.outgoing_links:
                 dic[link] = link.connection2
@@ -102,17 +101,15 @@ class Network:
             # We use this block to make sure that there is an 
             # initial routing table before the flows start
             if not init_routing_tables:
-                host_list = self.hosts.values()
                 init_routing_tables = True
-                routers = list(self.routers.values())
-                for router in routers:
-                    if len(router.next_routing_table) != len(routers) - 1:
+                for _, router in self.routers.items():
+                    if len(router.next_routing_table) != len(self.routers) - 1:
                         init_routing_tables = False
                         break
                 # Update the routing tables and start the next iteration of 
                 # message passing! 
                 if init_routing_tables:
-                    for router in routers:
+                    for _, router in self.routers.items():
                         router.update_routing_table(self.hosts.values())
             
             if self.counter % 220000 == 0 and self.counter != 0:
@@ -120,14 +117,12 @@ class Network:
         
             # This should be approximately every 5 seconds. Update the routing
             # table for each router and start sending packets
-            if self.counter % 250000 == 0 and self.counter != 0:
-                print("updating routing table")
-                print("time" + str(self.curr_time))
-                links = list(self.links.values())
-                for link in links:
-                    link.routing_pkts = 0                                
-                routers = list(self.routers.values())
-                for router in routers:
+            if self.counter % 220000 == 30000 and self.counter != 0:
+                # print("updating routing table")
+                # print("time" + str(self.curr_time))
+                for _, link in self.links.items():
+                    link.routing_pkts = 0              
+                for _, router in self.routers.items():
                     router.update_routing_table(self.hosts.values())
                 
 
@@ -156,7 +151,6 @@ class Network:
 
         for router in self.routers.items():
             dic = {}
-            router_id = router[0]
             router_obj = router[1]
             lst= router_obj.routing_table.items()
             if DEBUG:
