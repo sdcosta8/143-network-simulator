@@ -6,7 +6,7 @@ from host import Host
 from utils import (
     DEBUG, MB, KB, Mb, RENO, MESSAGE_SIZE
 )
-
+num = 1
 
 # This will find the minimum time step for each iteration based on the 
 # smallest time that it takes for a message to be propogated through a link
@@ -44,6 +44,7 @@ def convert_to_seconds(ms):
 # The list will be length > 1 in a case where we need
 # to plot several series
 def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
+    plt.subplot(6, 1, num)
     for i in range(len(time_dicts)):
         time_dict = time_dicts[i]
         series = series_labels[i]
@@ -57,8 +58,9 @@ def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
     plt.legend()
     plt.xlabel('Time (secs)')
     plt.ylabel(y_label)
-    plt.savefig(y_label + '.png')
-    plt.close()
+    plt.show()
+    if num == 6:
+        plt.savefig('graphs_of_network' + '.png')
 
 
 if __name__ == '__main__':
@@ -94,13 +96,15 @@ if __name__ == '__main__':
 
         if link["source"][0] == "H":
             src = network.hosts[int(link["source"][1])]
-            # src.router = network.routers[int(link["sink"][1])]
+            if  net_data["routers"] != []:
+                src.router = network.routers[int(link["sink"][1])]
         else:
             src = network.routers[int(link["source"][1])]
 
         if link["sink"][0] == "H":
             sink = network.hosts[int(link["sink"][1])]
-            # sink.router = network.routers[int(link["source"][1])]
+            if  net_data["routers"] != []:
+                sink.router = network.routers[int(link["source"][1])]
         else:
             sink = network.routers[int(link["sink"][1])]
 
@@ -226,14 +230,16 @@ if __name__ == '__main__':
     # Graph the buffer occupancies over time
     add_graph(buffer_occ_dicts, network.curr_time, "Buffer Occupancy (pkts)", \
         link_order, 0.01)
-
+    num += 1
+    
     # Graph the packet loss over time
     add_graph(packet_loss_dicts, network.curr_time, "Packet Loss (pkts)", \
         link_order, 0.01)
+    num += 1
     # Graph the link rates
     add_graph(link_rate_dicts, network.curr_time, "Link Rate (bps)", \
         link_order, 0.01)
-
+    num += 1
     # Get the values for the calculations each flow keeps track of 
     flow_list = network.flows.items()
     wind_size_dicts = []
@@ -249,13 +255,13 @@ if __name__ == '__main__':
     # Graph the window size over time
     add_graph(wind_size_dicts, network.curr_time, "Window Size (pkts)", \
         flow_order, 0.01)
-
+    num+=1
     # Graph the flow rate over time
     add_graph(flow_rate_dicts, network.curr_time, "Flow Rate (bps)", \
         flow_order, 0.01)
-
+    num+=1
     # Graph the packet delays over time
     add_graph(packet_delay_dicts, network.curr_time, "Packet Delay (sec)", \
         flow_order, 0.01)
-
+    num+=1
 
