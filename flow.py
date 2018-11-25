@@ -82,10 +82,13 @@ class Flow:
         # ssthresh for RENO
         self.ssthresh = float("inf")
         # alpha for FAST
-        self.alpha = 1
+        self.alpha = 10
+        # gamma for FAST
+        self.gamma = 0.5
 
         # Most current round trip time
         self.rtt = float("inf")
+        self.min_rtt = float("inf")
 
 
     def initialize_flow(self):
@@ -136,6 +139,8 @@ class Flow:
             # Calculate RTT and update RTO
             # Note that time_spawn of ack is of time spawn of original pkt
             self.rtt = self.curr_time - pkt.time_spawn
+            if self.rtt < self.min_rtt:
+                self.min_rtt = self.rtt
             self.update_rto()
 
             # Update the flow's duplicate ack info
@@ -150,8 +155,9 @@ class Flow:
                 print(" acknowlegement for pkt no", pkt.expecting_packet - 1,
                       "flow", self.id,  "received. RTT:", self.rtt)
 
-            # Update window size based on protocol
-            self.update_flow_control_ack()
+            # Update window size if we are using RENO
+            if self.protocol == "RENO":
+                self.update_flow_control_ack()
             if DEBUG:
                 print("", self.tcp_phase, self.curr_time,
                 " ack", pkt.expecting_packet - 1, "W:", self.window,
@@ -241,57 +247,72 @@ class Flow:
                   self.ssthresh, "repeated ack:", self.repeated_ack_count)
 
 
+    def update_flow_control_fast(self):
+        '''
+        This function is called periodically to update the window size according
+        to FAST protocol.
+        '''
+        if self.protocol != "FAST":
+            print("Should not update window periodically when FAST is not used!")
+            return
+        
+        self.window = min(
+            2 * self.window,
+            (1-self.gamma) * (self.window) + 
+            (self.gamma) * (self.min_rtt / self.rtt * self.window + self.alpha)
+        )
+
+
     def update_flow_control_ack(self):
         ''' 
-        Update window size and thresholds according to protocol,
+        Update window size and thresholds according to RENO protocol,
         upon receiving an acknowledgement.
         '''	
-        if self.protocol == "RENO":
+        if self.protocol != "RENO":
+            print("Should not update window upon ack when RENO is not used!")
+            return
 
-            # Reset rto timer upon successful ack
-            if self.repeated_ack_count == 0:
-                self.rto_timer = self.curr_time
-                
-            if self.tcp_phase == "SS":
-                # in slow start SS phase
-                if self.window + 1 >= self.ssthresh:
-                    # if reach ssthresh, enter CA
-                    self.window = self.ssthresh
-                    self.tcp_phase = "CA"
-                else:
-                    if self.repeated_ack_count == 0:
-                        # still SS, increment window
-                        self.window += 1
-                
-            elif self.tcp_phase == "CA":
-                # in congestion avoidance CA (linear) phase
-                if self.repeated_ack_count == 0:
-                    self.window += 1 / self.window
-                elif self.repeated_ack_count >= 3:
-                    # 3 duplicate ack, enter frfr
-                    self.ssthresh = max(self.window / 2, 2)
-                    self.window = self.ssthresh + 3
-                    self.next_packet_to_send = self.expecting_packet
-                    self.tcp_phase = "FR"
-                    self.repeated_ack_count = 0
-
-            elif self.tcp_phase == "FR":
-                # in fast recovery (exponential) phase
-                if self.window + 1 >= 3 * self.ssthresh - 1:
-                    # if we reach the end of frfr, go back to linear
-                    self.window = self.ssthresh
-                    self.tcp_phase = "CA"
-                else:
-                    if self.repeated_ack_count == 0:
-                        # still in frfr, increase exponentially
-                        self.window += 1
-
+        # Reset rto timer upon successful ack
+        if self.repeated_ack_count == 0:
+            self.rto_timer = self.curr_time
+            
+        if self.tcp_phase == "SS":
+            # in slow start SS phase
+            if self.window + 1 >= self.ssthresh:
+                # if reach ssthresh, enter CA
+                self.window = self.ssthresh
+                self.tcp_phase = "CA"
             else:
-                print("flow id", self.id, 
-                      "is in unknown phase of RENO: '" + self.tcp_phase + "'")
-        
-        elif self.protocol == "FAST":
-            pass
+                if self.repeated_ack_count == 0:
+                    # still SS, increment window
+                    self.window += 1
+            
+        elif self.tcp_phase == "CA":
+            # in congestion avoidance CA (linear) phase
+            if self.repeated_ack_count == 0:
+                self.window += 1 / self.window
+            elif self.repeated_ack_count >= 3:
+                # 3 duplicate ack, enter frfr
+                self.ssthresh = max(self.window / 2, 2)
+                self.window = self.ssthresh + 3
+                self.next_packet_to_send = self.expecting_packet
+                self.tcp_phase = "FR"
+                self.repeated_ack_count = 0
+
+        elif self.tcp_phase == "FR":
+            # in fast recovery (exponential) phase
+            if self.window + 1 >= 3 * self.ssthresh - 1:
+                # if we reach the end of frfr, go back to linear
+                self.window = self.ssthresh
+                self.tcp_phase = "CA"
+            else:
+                if self.repeated_ack_count == 0:
+                    # still in frfr, increase exponentially
+                    self.window += 1
+
+        else:
+            print("flow id", self.id, 
+                    "is in unknown phase of RENO: '" + self.tcp_phase + "'")
 
 
     def run(self, curr_time):
@@ -316,6 +337,10 @@ class Flow:
             self.send_packets()
             self.check_for_timeouts()
         
+        # periodically update window size
+        if self.protocol == "FAST" and self.network.counter % 1000 == 0:
+            self.update_flow_control_fast()
+
         # use this so that we dont get every point
         if self.network.counter % 1000 == 0:
             self.window_size.append([self.curr_time, self.window]) 
