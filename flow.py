@@ -150,6 +150,10 @@ class Flow:
                 print(" acknowlegement for pkt no", pkt.expecting_packet - 1,
                       "flow", self.id,  "received. RTT:", self.rtt)
 
+            print(" acknowlegement for pkt no", pkt.expecting_packet - 1,
+                "flow", self.id,  "received. RTT:", self.rtt)
+
+
             # Update window size based on protocol
             self.update_flow_control_ack()
             if DEBUG:
@@ -198,6 +202,7 @@ class Flow:
         '''
         if (self.curr_time - self.rto_timer) >= self.rto:
             # If this flow has timed out, update flow control
+            print("timeout occured")
             self.update_flow_control_rto()
             self.window_size.append([self.curr_time, self.window])
 
@@ -268,6 +273,7 @@ class Flow:
                 if self.repeated_ack_count == 0:
                     self.window += 1 / self.window
                 elif self.repeated_ack_count >= 3:
+                    print("duplicate acks")
                     # 3 duplicate ack, enter frfr
                     self.ssthresh = max(self.window / 2, 2)
                     self.window = self.ssthresh + 3
