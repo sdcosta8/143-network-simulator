@@ -125,6 +125,8 @@ class Flow:
 
             if DEBUG:
                 print("sent packet", pkt.packet_no, "of flow id", self.id)
+            if self.curr_time < 3.6 and self.curr_time > 2.56:
+                print("sent packet", pkt.packet_no)
 
 
     def receive_packet(self, pkt):
@@ -155,6 +157,8 @@ class Flow:
                 print(" acknowlegement for pkt no", pkt.expecting_packet - 1,
                       "flow", self.id,  "received. RTT:", self.rtt)
 
+            print(" ack pkt", pkt.expecting_packet - 1, self.curr_time,
+            "RTT:", self.rtt, "RTO:", self.rto, self.tcp_phase, self.rto_timer)
             # Update window size if we are using RENO
             if self.protocol == "RENO":
                 self.update_flow_control_ack()
@@ -204,6 +208,7 @@ class Flow:
         '''
         if (self.curr_time - self.rto_timer) >= self.rto:
             # If this flow has timed out, update flow control
+            print("timeout occured")
             self.update_flow_control_rto()
             self.window_size.append([self.curr_time, self.window])
 
@@ -292,6 +297,7 @@ class Flow:
             if self.repeated_ack_count == 0:
                 self.window += 1 / self.window
             elif self.repeated_ack_count >= 3:
+                print("duplicate acks")
                 # 3 duplicate ack, enter frfr
                 self.ssthresh = max(self.window / 2, 2)
                 self.window = self.ssthresh + 3
