@@ -22,27 +22,32 @@ def convert_to_lists(time_dicts, series_labels):
 
 
 # Helper function called to plot each subplot
-def add_individual_subplot(series_list, last_time, y_label, ax):
+def add_individual_subplot(series_list, last_time, y_label, ax, width_scale, anchor_x, 
+    anchor_y):
     for i in range(len(series_list)):
         x_axis = series_list[i][0]
         y_axis = series_list[i][1]
         series = series_list[i][2]
         ax.plot(x_axis, y_axis, label=series)
-
     chartBox = ax.get_position()
-    ax.set_position([chartBox.x0, chartBox.y0, chartBox.width*0.3, chartBox.height])
-    ax.legend(loc='upper center', bbox_to_anchor=(1.45, 0.8), shadow=True, ncol=1)
+    ax.set_position([chartBox.x0, chartBox.y0, chartBox.width*width_scale, \
+        chartBox.height])
+    ax.legend(loc='upper center', bbox_to_anchor=(anchor_x, anchor_y), \
+        shadow=True, ncol=1)
     plt.xlabel('Time (secs)')
     plt.ylabel(y_label)
 
 
-def plot_graphs(points_dict, last_time, num_subplots, plot_name):
+def plot_graphs(points_dict, last_time, num_subplots, plot_name, width_scale, \
+    anchor_x, anchor_y):
     fig = plt.figure()
+    fig.set_size_inches(13, 5)
     num = 1
     for item in points_dict.items():
         # Each item is a particular graph mapped to its individual series'
         ax = fig.add_subplot(num_subplots, 1, num)
-        add_individual_subplot(item[1], last_time, item[0], ax)
+        add_individual_subplot(item[1], last_time, item[0], ax, width_scale, \
+            anchor_x, anchor_y)
         num += 1
     plt.savefig(plot_name)
     plt.close()
@@ -53,7 +58,8 @@ def plot_each_graph_separate(points_dict, last_time, test_case):
     for item in points_dict.items():
         graph_dict = {}
         graph_dict[item[0]] = item[1]
-        plot_graphs(graph_dict, last_time, 1, test_case + item[0].split(' (')[0] + '.png')
+        plot_graphs(graph_dict, last_time, 1, test_case + item[0].split(' (')[0] + '.png', 
+            1, 0.5, 1.15)
 
 
 # For each series in each graph, we should plot them separately
@@ -63,7 +69,7 @@ def plot_each_series_separate(points_dict, last_time, test_case):
             series_dict = {}
             series_dict[item[0]] = [item[1][i]]
             plot_graphs(series_dict, last_time, 1, test_case + \
-                item[1][i][2] + item[0].split(' (')[0] + '.png')
+                item[1][i][2] + item[0].split(' (')[0] + '.png', 1, 0.5, 1.15)
 
 
 # Below are the series' we need to plot together:
@@ -98,13 +104,13 @@ def plot_parallel_links(data, last_time, y_label):
         elif element[2] == 'L4_left':
             L4_left = element
     plot_graphs({y_label: [L1_right, L2_right]}, last_time, 1, \
-        'test1' + 'Parallel' + "L1L2_right" + y_label.split(' (')[0] + '.png')
+        'test1' + 'Parallel' + "L1L2_right" + y_label.split(' (')[0] + '.png', 1, 0.5, 1.15)
     plot_graphs({y_label: [L3_right, L4_right]}, last_time, 1, \
-        'test1' + 'Parallel' + "L3L4_right" + y_label.split(' (')[0] + '.png')
+        'test1' + 'Parallel' + "L3L4_right" + y_label.split(' (')[0] + '.png', 1, 0.5, 1.15)
     plot_graphs({y_label: [L1_left, L2_left]}, last_time, 1, \
-        'test1' + 'Parallel' + "L1L2_left" + y_label.split(' (')[0] + '.png')
+        'test1' + 'Parallel' + "L1L2_left" + y_label.split(' (')[0] + '.png', 1, 0.5, 1.15)
     plot_graphs({y_label: [L3_left, L4_left]}, last_time, 1, \
-        'test1' + 'Parallel' + "L3L4_left" + y_label.split(' (')[0] + '.png')
+        'test1' + 'Parallel' + "L3L4_left" + y_label.split(' (')[0] + '.png', 1, 0.5, 1.15)
 
 
 # The function that should be called from outside this file
@@ -127,7 +133,7 @@ def create_graphs(buffer_occ_dicts, packet_loss_dicts, last_time, \
 
     # All graphs on one figure
     if GRAPHS_TOGETHER:
-        plot_graphs(points_dict, last_time, 6, test_case + 'AllGraphs.png')
+        plot_graphs(points_dict, last_time, 6, test_case + 'AllGraphs.png', 0.8, 1.2, 0.8)
 
     # Each graph in different figure
     if INDIV_GRAPHS:
