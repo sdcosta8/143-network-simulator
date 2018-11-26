@@ -212,6 +212,7 @@ class Flow:
         # Check if the received object is a packet
         elif pkt.packet_type == PACKET:
             # update dictionary for received packets
+            self.num_packets_received += 1
             self.received_packets[pkt.packet_no] = True
             self.packet_delays.append([self.curr_time, self.curr_time - pkt.time_spawn])       
             if DEBUG:
