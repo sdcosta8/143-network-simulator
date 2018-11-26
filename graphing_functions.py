@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from utils import (
-    INDIV_SERIES, INDIV_GRAPHS, GRAPHS_TOGETHER
+    INDIV_SERIES, INDIV_GRAPHS, GRAPHS_TOGETHER, PLOT_PARALLEL
 )
 
 # Helper function for converting the dictionaries to a list 
@@ -66,6 +66,47 @@ def plot_each_series_separate(points_dict, last_time, test_case):
                 item[1][i][2] + item[0].split(' (')[0] + '.png')
 
 
+# Below are the series' we need to plot together:
+# L1_right and L2_right
+# L3_right and L4_right
+# L1_left and L2_left
+# L3_left and L4_left
+def plot_parallel_links(data, last_time, y_label):
+    L1_right = None
+    L1_left = None
+    L2_right = None
+    L2_left = None
+    L3_right = None
+    L3_left = None
+    L4_right = None
+    L4_left = None
+    for element in data:
+        if element[2] == 'L1_right':
+            L1_right = element
+        elif element[2] == 'L1_left':
+            L1_left = element
+        elif element[2] == 'L2_right':
+            L2_right = element
+        elif element[2] == 'L2_left':
+            L2_left = element
+        elif element[2] == 'L3_right':
+            L3_right = element
+        elif element[2] == 'L3_left':
+            L3_left = element
+        elif element[2] == 'L4_right':
+            L4_right = element
+        elif element[2] == 'L4_left':
+            L4_left = element
+    plot_graphs({y_label: [L1_right, L2_right]}, last_time, 1, \
+        'test1' + 'Parallel' + "L1L2_right" + y_label.split(' (')[0] + '.png')
+    plot_graphs({y_label: [L3_right, L4_right]}, last_time, 1, \
+        'test1' + 'Parallel' + "L3L4_right" + y_label.split(' (')[0] + '.png')
+    plot_graphs({y_label: [L1_left, L2_left]}, last_time, 1, \
+        'test1' + 'Parallel' + "L1L2_left" + y_label.split(' (')[0] + '.png')
+    plot_graphs({y_label: [L3_left, L4_left]}, last_time, 1, \
+        'test1' + 'Parallel' + "L3L4_left" + y_label.split(' (')[0] + '.png')
+
+
 # The function that should be called from outside this file
 def create_graphs(buffer_occ_dicts, packet_loss_dicts, last_time, \
     link_rate_dicts, wind_size_dicts, flow_rate_dicts, packet_delay_dicts, \
@@ -96,3 +137,10 @@ def create_graphs(buffer_occ_dicts, packet_loss_dicts, last_time, \
     if INDIV_SERIES:
         plot_each_series_separate(points_dict, last_time, test_case)
 
+    # Graph the links in parallel together. We need to hard code this for 
+    # test case 1. do for link rates and buffer occupancy
+    if PLOT_PARALLEL and test_case == 'test1':
+        plot_parallel_links(points_dict['Buffer Occupancy (pkts)'], \
+            last_time, 'Buffer Occupancy (pkts)')
+        plot_parallel_links(points_dict['Link Rate (bps)'], \
+            last_time, 'Link Rate (bps)')

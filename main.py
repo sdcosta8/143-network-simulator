@@ -250,10 +250,6 @@ if __name__ == '__main__':
             name = 'L' + str(element[0]) + '_right'
         else:
             name = 'L' + str(int(element[0] % size) + start_index) + '_left'
-
-        print("_____next link____")
-        print('L' + str(element[0]))
-        print(name)
         link_order.append(name)
         packet_loss_dicts.append(element[1].packet_loss)
         buffer_occ_dicts.append(element[1].buffer_occupancy)
