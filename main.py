@@ -1,12 +1,11 @@
 import sys
 import json
-import matplotlib.pyplot as plt
 from network import Network
 from host import Host
+import graphing_functions as graph
 from utils import (
     DEBUG, MB, KB, Mb, RENO, MESSAGE_SIZE
 )
-num = 1
 
 # This will find the minimum time step for each iteration based on the 
 # smallest time that it takes for a message to be propogated through a link
@@ -39,10 +38,7 @@ def convert_to_seconds(ms):
     return ms * 0.001
 
 
-# Pass in a  list of dictionary where timestamps are 
-# mapped to rates, packet losses, etc.
-# The list will be length > 1 in a case where we need
-# to plot several series
+# This is used for plotting all the graphs on the same figure
 def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
     ax = fig.add_subplot(6, 1, num)
     for i in range(len(time_dicts)):
@@ -60,6 +56,30 @@ def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
     plt.ylabel(y_label)
     if num == 6:
         plt.savefig('graphs_of_network' + '.png')
+
+
+# Plot each series as a different figure
+def add_individual_graph(time_dicts, last_time, y_label, series_labels, \
+    timestep):
+    ax = fig.add_subplot(6, 1, num)
+    for i in range(len(time_dicts)):
+        time_dict = time_dicts[i]
+        series = series_labels[i]
+        x_axis = []
+        y_axis = []
+
+        for element in time_dict:
+            x_axis.append(element[0])
+            y_axis.append(element[1])
+        ax.plot(x_axis, y_axis, label=series)
+    ax.legend()
+    plt.xlabel('Time (secs)')
+    plt.ylabel(y_label)
+    if num == 6:
+        plt.savefig('graphs_of_network' + '.png')
+
+
+
 
 
 if __name__ == '__main__':
@@ -214,32 +234,31 @@ if __name__ == '__main__':
     # Start the network!
     network.run_network()
 
-    # Get the values for the calculations each link keeps track of 
-    links_list = network.links.items()
+
+    # Get the values for the calculations each link keeps track of
+    # Convert to a list so that we can index each item 
+    links_list = list(network.links.items())
+    size = len(links_list) / 2
     packet_loss_dicts = []
     buffer_occ_dicts = []
     link_rate_dicts = []
     link_order = []
+
+    start_index = 0 not in network.links
     for element in links_list:
-        link_order.append("L" + str(element[0]))
+        if element[0] < size + start_index:
+            name = 'L' + str(element[0]) + '_right'
+        else:
+            name = 'L' + str(int(element[0] % size) + start_index) + '_left'
+
+        print("_____next link____")
+        print('L' + str(element[0]))
+        print(name)
+        link_order.append(name)
         packet_loss_dicts.append(element[1].packet_loss)
         buffer_occ_dicts.append(element[1].buffer_occupancy)
         link_rate_dicts.append(element[1].link_rates)
 
-    fig = plt.figure()
-    # Graph the buffer occupancies over time
-    add_graph(buffer_occ_dicts, network.curr_time, "Buffer Occupancy (pkts)", \
-        link_order, 0.01)
-    num += 1
-    
-    # Graph the packet loss over time
-    add_graph(packet_loss_dicts, network.curr_time, "Packet Loss (pkts)", \
-        link_order, 0.01)
-    num += 1
-    # Graph the link rates
-    add_graph(link_rate_dicts, network.curr_time, "Link Rate (bps)", \
-        link_order, 0.01)
-    num += 1
     # Get the values for the calculations each flow keeps track of 
     flow_list = network.flows.items()
     wind_size_dicts = []
@@ -252,19 +271,8 @@ if __name__ == '__main__':
         flow_rate_dicts.append(element[1].flow_rates)
         packet_delay_dicts.append(element[1].packet_delays)
 
-    # Graph the window size over time
-    add_graph(wind_size_dicts, network.curr_time, "Window Size (pkts)", \
-        flow_order, 0.01)
-    num+=1
-    # Graph the flow rate over time
-    add_graph(flow_rate_dicts, network.curr_time, "Flow Rate (bps)", \
-        flow_order, 0.01)
-    num+=1
-    # Graph the packet delays over time
-    add_graph(packet_delay_dicts, network.curr_time, "Packet Delay (sec)", \
-        flow_order, 0.01)
-    num+=1
-    #plt.tight_layout()
-    fig = plt.gcf()
-    plt.show()
-    print('all graphs done')
+    # Send the plots to the graphing function 
+    graph.create_graphs(buffer_occ_dicts, packet_loss_dicts, network.curr_time, \
+        link_rate_dicts, wind_size_dicts, flow_rate_dicts, packet_delay_dicts, \
+        link_order, flow_order, filename.split('.')[0])
+
