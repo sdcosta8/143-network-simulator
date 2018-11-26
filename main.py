@@ -167,7 +167,8 @@ if __name__ == '__main__':
             print("    ID of Flows from Host:")
             for flow in host[1].flows:
                 print("    " + str(flow.id))
-            print("    ID of connected router: " + str(host[1].router.ip))
+            if host[1].router:
+                print("    ID of connected router: " + str(host[1].router.ip))
 
         routers_list = list(network.routers.items())
         if (len(routers_list) > 0):

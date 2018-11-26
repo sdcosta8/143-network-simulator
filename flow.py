@@ -35,7 +35,7 @@ class Flow:
         # As the destination, what the host is expecting
         self.dest_expecting_packet = 1
 
-        # Reset to expecting_packet when we receive 3 repeated ack
+        # Reset to expecting_packet when timeout
         self.next_packet_to_send = 1
         # All packets that are sent but have not received acknowledgements
         self.sent_times = {}
@@ -78,6 +78,8 @@ class Flow:
 
         # Received packets of the receiver
         self.received_packets = {}
+        # The smallest packet that the receiver has not received
+        self.next_missing_packet = 1
 
         # Flow rate of the bits recived per time step
         self.flow_rates = []
@@ -110,28 +112,28 @@ class Flow:
         This function will be called at every iteration of the global timer to
         see if there are any packets that can be sent by the flow.
         '''
-        # See if any packets can be sent. The cutoff is exclusive
-        if len(self.unack_packets) == 0:
-            next_packet_to_send = 1
-        else:
-            next_packet_to_send = self.unack_packets[-1] + 1
+        # See if any packets can be sent based on window size
         while (len(self.unack_packets) < self.window and
-               next_packet_to_send <= self.num_packets):
-            # We can send more packets
+        self.next_packet_to_send <= self.num_packets):
+            # Create packet
             pkt = self.network.create_packet(
                 PACKET_SIZE, PACKET,
                 self.source, self.destination, self.curr_time,
                 False, self.source,
-                flow=self, packet_no=next_packet_to_send,
-                last_packet=(next_packet_to_send == self.num_packets)
+                flow=self, packet_no=self.next_packet_to_send,
+                last_packet=(self.next_packet_to_send == self.num_packets)
             )
-            
+            # print(self.unack_packets)
+            # print(" next_packet_to_send", self.next_packet_to_send,
+            #       "sent pkt", pkt.packet_no)
+
             # Send the packet by putting it in the link buffer
             self.source.outgoing_link.add_packets([pkt])
             # Record sent time for this packet
             self.sent_times[pkt.packet_no] = self.curr_time
             # Update the flow's unacknowledged packets
             self.unack_packets.append(pkt.packet_no)
+            self.next_packet_to_send += 1
 
             if DEBUG:
                 print("sent packet", pkt.packet_no, "of flow id", self.id)
@@ -163,6 +165,9 @@ class Flow:
         # See if it is acknowledgement
         if pkt.packet_type == ACK:
 
+            # Book keeping for resetting during a timeout
+            self.expecting_packet = pkt.expecting_packet
+
             # Calculate RTT and update RTO
             # Note that time_spawn of ack is of time spawn of original pkt
             self.rtt = self.curr_time - pkt.time_spawn
@@ -171,22 +176,24 @@ class Flow:
             self.update_rto()
 
             # If the 0th packet is lost
-            if self.unack_packets[0] == pkt.expecting_packet:
-                if len(self.unack_packets) >= 2:
+            if (len(self.unack_packets) > 0 and
+            self.unack_packets[0] == pkt.expecting_packet):
+                # Assume the ack is for the next packet in line
+                if len(self.unack_packets) > 1:
                     self.unack_packets.pop(1)
                 self.repeated_ack_count += 1
-            # Remove all packets before ack number
-            while (len(self.unack_packets) != 0 and
-                   self.unack_packets[0] < pkt.expecting_packet):
+            # If 0th packet is acked, remove all packets before expecting pkt
+            while (len(self.unack_packets) > 0 and
+            self.unack_packets[0] < pkt.expecting_packet):
                 self.unack_packets.pop(0)
                 self.repeated_ack_count = 0
 
             if DEBUG:
-                print(" acknowlegement for pkt no", pkt.expecting_packet - 1,
+                print(" ack expecting pkt", pkt.expecting_packet,
                       "flow", self.id,  "received. RTT:", self.rtt)
 
-            print(" ack pkt", pkt.expecting_packet - 1, self.curr_time,
-            "RTT:", self.rtt, "RTO:", self.rto, self.tcp_phase, self.rto_timer)
+            print(" ack", pkt.expecting_packet, self.curr_time,
+                  "rto_timer:", self.rto_timer, "RTO:", self.rto, self.tcp_phase)
 
             # Update window size if we are using RENO
             if self.protocol == "RENO":
@@ -197,7 +204,7 @@ class Flow:
                 "repeated ack:", self.repeated_ack_count)
 
             # Check if all the packets in the flow have been received
-            if self.expecting_packet == self.num_packets + 1:
+            if pkt.expecting_packet == self.num_packets + 1:
                 self.finished = True
                 if DEBUG:
                     print(" flow no", self.id, "has finished sending")
@@ -214,35 +221,34 @@ class Flow:
                       self.curr_time)
 
             # Create an acknowledgement for the packet
-            next_missing_packet = 1
-            while next_missing_packet in self.received_packets:
-                next_missing_packet += 1
+            while self.next_missing_packet in self.received_packets:
+                self.next_missing_packet += 1
             ack_packet = self.network.create_packet(
                 ACK_SIZE, ACK,
                 pkt.destination, pkt.source, pkt.time_spawn,
                 False, pkt.destination,
                 flow=self,
-                expecting_packet=next_missing_packet
+                expecting_packet=self.next_missing_packet
                 )
 
             # Send the packet by putting it in the link
             self.destination.outgoing_link.add_packets([ack_packet])
 
             if DEBUG:
-                print(" acknowledgement packet for pkt no", pkt.packet_no,
-                      "flow", self.id, "is sent")
+                print(" ack expecting", self.next_missing_packet,
+                      "of flow", self.id, "is sent")
 
 
     def check_for_timeouts(self):
         '''
-        This function we want to see if a packet was dropped due to a timeout.
-        This will occur if the max waiting time of the host is greater than the
-        time delta of the time that the packet was sent at.
+        This function checks if the flow has timed out
+        If so, resend the earliest lost packet and update window size
         '''
         if (self.curr_time - self.rto_timer) >= self.rto:
             # If this flow has timed out, update flow control
             print("timeout occured")
             self.update_flow_control_rto()
+            print("next_packet_to_send", self.next_packet_to_send)
             self.window_size.append([self.curr_time, self.window])
 
 
@@ -277,6 +283,7 @@ class Flow:
             self.ssthresh = max(self.window / 2, 2)
             self.window = 1
             self.next_packet_to_send = self.expecting_packet
+            self.unack_packets = []
             self.tcp_phase = "SS"
 
         self.window_size.append([self.curr_time, self.window])
@@ -311,7 +318,7 @@ class Flow:
             return
 
         # Reset rto timer upon successful ack or 3 dup ack (?)
-        if self.repeated_ack_count % 3 == 0:
+        if self.repeated_ack_count == 0 or self.repeated_ack_count == 3:
             self.rto_timer = self.curr_time
             
         if self.tcp_phase == "SS":
@@ -335,9 +342,9 @@ class Flow:
                 self.ssthresh = max(self.window / 2, 2)
                 self.window = self.ssthresh + 3
                 self.tcp_phase = "FR"
-                self.repeated_ack_count = 0
                 # Resend the lost packet
-                self.send_lost_packet(self.unack_packets[0])
+                if len(self.unack_packets) > 0:
+                    self.send_lost_packet(self.unack_packets[0])
 
         elif self.tcp_phase == "FR":
             # in fast recovery (exponential) phase

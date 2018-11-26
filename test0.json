@@ -12,7 +12,7 @@
     "flows": [
         {
             "id": "1",
-            "data_amount": "0.01",
+            "data_amount": "20",
             "start_time": "1",
             "source": "1",
             "dest": "2",
