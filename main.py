@@ -44,7 +44,7 @@ def convert_to_seconds(ms):
 # The list will be length > 1 in a case where we need
 # to plot several series
 def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
-    plt.subplot(6, 1, num)
+    ax = fig.add_subplot(6, 1, num)
     for i in range(len(time_dicts)):
         time_dict = time_dicts[i]
         series = series_labels[i]
@@ -54,11 +54,10 @@ def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
         for element in time_dict:
             x_axis.append(element[0])
             y_axis.append(element[1])
-        plt.plot(x_axis, y_axis, label=series)
-    plt.legend()
+        ax.plot(x_axis, y_axis, label=series)
+    ax.legend()
     plt.xlabel('Time (secs)')
     plt.ylabel(y_label)
-    plt.show()
     if num == 6:
         plt.savefig('graphs_of_network' + '.png')
 
@@ -201,7 +200,6 @@ if __name__ == '__main__':
             print("    Destination IP Address: " + str(flow[1].destination.ip))
             print("    Time Spawned " + str(flow[1].time_spawn))
             print("    Window Size: " + str(flow[1].window))
-
     # This will find the minimum time step for each iteration 
     lst_link_prop = []
     lst_link_rate = []
@@ -228,41 +226,45 @@ if __name__ == '__main__':
         buffer_occ_dicts.append(element[1].buffer_occupancy)
         link_rate_dicts.append(element[1].link_rates)
 
-    # # Graph the buffer occupancies over time
-    # add_graph(buffer_occ_dicts, network.curr_time, "Buffer Occupancy (pkts)", \
-    #     link_order, 0.01)
-    # num += 1
+    fig = plt.figure()
+    # Graph the buffer occupancies over time
+    add_graph(buffer_occ_dicts, network.curr_time, "Buffer Occupancy (pkts)", \
+        link_order, 0.01)
+    num += 1
     
-    # # Graph the packet loss over time
-    # add_graph(packet_loss_dicts, network.curr_time, "Packet Loss (pkts)", \
-    #     link_order, 0.01)
-    # num += 1
-    # # Graph the link rates
-    # add_graph(link_rate_dicts, network.curr_time, "Link Rate (bps)", \
-    #     link_order, 0.01)
-    # num += 1
-    # # Get the values for the calculations each flow keeps track of 
-    # flow_list = network.flows.items()
-    # wind_size_dicts = []
-    # flow_rate_dicts = []
-    # packet_delay_dicts = []
-    # flow_order = []
-    # for element in flow_list:
-    #     flow_order.append("F" + str(element[0]))
-    #     wind_size_dicts.append(element[1].window_size)
-    #     flow_rate_dicts.append(element[1].flow_rates)
-    #     packet_delay_dicts.append(element[1].packet_delays)
+    # Graph the packet loss over time
+    add_graph(packet_loss_dicts, network.curr_time, "Packet Loss (pkts)", \
+        link_order, 0.01)
+    num += 1
+    # Graph the link rates
+    add_graph(link_rate_dicts, network.curr_time, "Link Rate (bps)", \
+        link_order, 0.01)
+    num += 1
+    # Get the values for the calculations each flow keeps track of 
+    flow_list = network.flows.items()
+    wind_size_dicts = []
+    flow_rate_dicts = []
+    packet_delay_dicts = []
+    flow_order = []
+    for element in flow_list:
+        flow_order.append("F" + str(element[0]))
+        wind_size_dicts.append(element[1].window_size)
+        flow_rate_dicts.append(element[1].flow_rates)
+        packet_delay_dicts.append(element[1].packet_delays)
 
-    # # Graph the window size over time
-    # add_graph(wind_size_dicts, network.curr_time, "Window Size (pkts)", \
-    #     flow_order, 0.01)
-    # num+=1
-    # # Graph the flow rate over time
-    # add_graph(flow_rate_dicts, network.curr_time, "Flow Rate (bps)", \
-    #     flow_order, 0.01)
-    # num+=1
-    # # Graph the packet delays over time
-    # add_graph(packet_delay_dicts, network.curr_time, "Packet Delay (sec)", \
-    #     flow_order, 0.01)
-    # num+=1
-
+    # Graph the window size over time
+    add_graph(wind_size_dicts, network.curr_time, "Window Size (pkts)", \
+        flow_order, 0.01)
+    num+=1
+    # Graph the flow rate over time
+    add_graph(flow_rate_dicts, network.curr_time, "Flow Rate (bps)", \
+        flow_order, 0.01)
+    num+=1
+    # Graph the packet delays over time
+    add_graph(packet_delay_dicts, network.curr_time, "Packet Delay (sec)", \
+        flow_order, 0.01)
+    num+=1
+    #plt.tight_layout()
+    fig = plt.gcf()
+    plt.show()
+    print('all graphs done')
