@@ -150,7 +150,6 @@ class Network:
             self.counter += 1
 
         for router in self.routers.items():
-            dic = {}
             router_obj = router[1]
             lst= router_obj.routing_table.items()
             if DEBUG:
