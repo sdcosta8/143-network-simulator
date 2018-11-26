@@ -41,7 +41,7 @@ def add_individual_subplot(series_list, last_time, y_label, ax, width_scale, anc
 def plot_graphs(points_dict, last_time, num_subplots, plot_name, width_scale, \
     anchor_x, anchor_y):
     fig = plt.figure()
-    fig.set_size_inches(13, 5)
+    fig.set_size_inches(20, 10)
     num = 1
     for item in points_dict.items():
         # Each item is a particular graph mapped to its individual series'
