@@ -99,7 +99,7 @@
             "source": "4",
             "dest": "5",
             "window": "1",
-            "protocol": ""
+            "protocol": "RENO"
         }
     ],
     "hosts": [

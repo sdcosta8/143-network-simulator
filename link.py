@@ -165,11 +165,12 @@ class Link:
             else:
                 break
         
-        self.buffer_occupancy.append([curr_time, len(self.buffer)])
         self.transmit_packet()
 
         # use this so that we dont get every point
-        if self.network.counter % 1000 == 0:
+        if self.network.counter % 10000 == 0:
+
+            self.buffer_occupancy.append([curr_time, len(self.buffer)])
 
             if len(self.link_rates) > 1:
                 prev_time = curr_time - (1000 * self.network.timestep)

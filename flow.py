@@ -391,7 +391,7 @@ class Flow:
             self.update_flow_control_fast()
 
         # use this so that we dont get every point
-        if self.network.counter % 1000 == 0:
+        if self.network.counter % 10000 == 0:
             self.window_size.append([self.curr_time, self.window]) 
             if len(self.flow_rates) != 0:
                 self.flow_rates.append([curr_time - (1000 * self.network.timestep), \
