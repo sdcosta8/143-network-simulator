@@ -53,7 +53,12 @@ class Flow:
         self.window = window
         # Most current round trip time
         self.rtt = float("inf")
+        # Average round trip time over a window
+        self.avg_rtt = -1
+        # Minimum round trip time observed
         self.min_rtt = float("inf")
+        # Queueing delay
+        self.qdelay = 0
         # Retransmission timeout time
         # Compared to (curr_time - rto_timer) to determine timeout
         self.rto = 3
@@ -128,12 +133,22 @@ class Flow:
             # Book keeping for resetting during a timeout
             self.expecting_packet = pkt.expecting_packet
 
-            # Calculate RTT and update RTO
+            # Calculate RTT
             # Note that time_spawn of ack is of time spawn of original pkt
             self.rtt = self.curr_time - pkt.time_spawn
-            if self.rtt < self.min_rtt:
-                self.min_rtt = self.rtt
-            self.update_rto()
+            # Update min RTT
+            self.min_rtt = min(self.min_rtt, self.rtt)
+            # Update RTO
+            self.rto = min(60, max(1, self.rtt * 2))
+            # Initialize average RTT
+            if self.avg_rtt < 0:
+                self.avg_rtt = self.rtt
+            # Calculate queueing delay
+            self.q_delay = self.avg_rtt - self.min_rtt
+            # Update average RTT for next iteration
+            eta = min(3 / self.window, 1/4)
+            self.avg_rtt = (1 - eta) * self.avg_rtt + eta * self.rtt
+            
 
             # Update dup ack count
             if self.expecting_packet != pkt.expecting_packet:
@@ -197,17 +212,6 @@ class Flow:
             self.update_flow_control_rto()
             print("next_packet_to_send", self.next_packet_to_send)
             self.window_sizes.append([self.curr_time, self.window])
-
-
-    def update_rto(self):
-        '''
-        Update retransmission timeout time based on the most current RTT.
-        Upperbound = 60 sec
-        Lowerbound = 1 sec
-        '''
-        self.rto = min(60, max(1, self.rtt * 2))
-        if DEBUG:
-            print(" update_rto RTO:", self.rto)
 
 
     def update_flow_control_rto(self):
