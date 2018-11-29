@@ -27,7 +27,6 @@ class Host:
         
         # The link object that the host is connected to         
         self.incoming_link = None
-    
         self.outgoing_link = None
     
         # Initialize the received acknowledgements queue. This will hold all 

@@ -38,45 +38,45 @@ def convert_to_seconds(ms):
     return ms * 0.001
 
 
-# This is used for plotting all the graphs on the same figure
-def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
-    ax = fig.add_subplot(6, 1, num)
-    for i in range(len(time_dicts)):
-        time_dict = time_dicts[i]
-        series = series_labels[i]
-        x_axis = []
-        y_axis = []
+# # This is used for plotting all the graphs on the same figure
+# def add_graph(time_dicts, last_time, y_label, series_labels, timestep):
+#     ax = fig.add_subplot(6, 1, num)
+#     for i in range(len(time_dicts)):
+#         time_dict = time_dicts[i]
+#         series = series_labels[i]
+#         x_axis = []
+#         y_axis = []
 
-        for element in time_dict:
-            x_axis.append(element[0])
-            y_axis.append(element[1])
-        ax.plot(x_axis, y_axis, label=series)
-    ax.legend()
-    plt.xlabel('Time (secs)')
-    plt.ylabel(y_label)
-    if num == 6:
-        plt.savefig('graphs_of_network' + '.png')
+#         for element in time_dict:
+#             x_axis.append(element[0])
+#             y_axis.append(element[1])
+#         ax.plot(x_axis, y_axis, label=series)
+#     ax.legend()
+#     plt.xlabel('Time (secs)')
+#     plt.ylabel(y_label)
+#     if num == 6:
+#         plt.savefig('graphs_of_network' + '.png')
 
 
-# Plot each series as a different figure
-def add_individual_graph(time_dicts, last_time, y_label, series_labels, \
-    timestep):
-    ax = fig.add_subplot(6, 1, num)
-    for i in range(len(time_dicts)):
-        time_dict = time_dicts[i]
-        series = series_labels[i]
-        x_axis = []
-        y_axis = []
+# # Plot each series as a different figure
+# def add_individual_graph(time_dicts, last_time, y_label, series_labels, \
+#     timestep):
+#     ax = fig.add_subplot(6, 1, num)
+#     for i in range(len(time_dicts)):
+#         time_dict = time_dicts[i]
+#         series = series_labels[i]
+#         x_axis = []
+#         y_axis = []
 
-        for element in time_dict:
-            x_axis.append(element[0])
-            y_axis.append(element[1])
-        ax.plot(x_axis, y_axis, label=series)
-    ax.legend()
-    plt.xlabel('Time (secs)')
-    plt.ylabel(y_label)
-    if num == 6:
-        plt.savefig('graphs_of_network' + '.png')
+#         for element in time_dict:
+#             x_axis.append(element[0])
+#             y_axis.append(element[1])
+#         ax.plot(x_axis, y_axis, label=series)
+#     ax.legend()
+#     plt.xlabel('Time (secs)')
+#     plt.ylabel(y_label)
+#     if num == 6:
+#         plt.savefig('graphs_of_network' + '.png')
 
 
 
@@ -263,7 +263,7 @@ if __name__ == '__main__':
     flow_order = []
     for element in flow_list:
         flow_order.append("F" + str(element[0]))
-        wind_size_dicts.append(element[1].window_size)
+        wind_size_dicts.append(element[1].window_sizes)
         flow_rate_dicts.append(element[1].flow_rates)
         packet_delay_dicts.append(element[1].packet_delays)
 

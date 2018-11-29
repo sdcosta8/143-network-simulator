@@ -13,7 +13,6 @@ def convert_to_lists(time_dicts, series_labels):
         series = series_labels[i]
         x_axis = []
         y_axis = []
-        counter = 5 
         for element in time_dict:
             x_axis.append(element[0])
             y_axis.append(element[1])
