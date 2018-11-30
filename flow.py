@@ -312,7 +312,6 @@ class Flow:
             self.enter_frfr()
 
         if self.protocol == "FAST":
-            # TODO add a new mechanism for exiting SS and entering CA
             if self.tcp_phase == "SS":
                 if (self.window >= self.ssthresh or
                     (1/self.min_rtt - 1/self.rtt) != 0 and

@@ -111,7 +111,6 @@ class Link:
             self.packet_loss[len(self.packet_loss) - 2][1] += 1
 
             pkt.curr_pos = self
-        # TODO: Update the congestion and dynamic cost pf the link and bit rate? 
 
 
     def send_packet(self, packet):
@@ -121,10 +120,8 @@ class Link:
         '''
         self.routing_pkts += packet.num_bits
         if packet.packet_type == MESSAGE:
-            packet.current_cost += self.calculate_dynamic_cost()
             # add the dynamic cost to the packet
-            ##TODO
-            # packet.current_cost += self.dynamic_cost
+            packet.current_cost += self.calculate_dynamic_cost()
         arrival_time = self.curr_time + self.prop_time
         self.traveling_packets.append((arrival_time, packet))
 
@@ -138,7 +135,6 @@ class Link:
         self.connection2.receive_packet(packet)
         packet.curr_pos = self.connection2
         packet.prev_link = self
-        # TODO: The dynamic cost of the link should be updated
 
 
         # Link rate = total bits from packets so far + bits of this 

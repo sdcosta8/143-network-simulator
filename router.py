@@ -103,7 +103,6 @@ class Router:
     
         # For each packet about to be sent the router should look up which link 
         # to place them on by looking up their destinations in the routing table	
-        # TODO: WTF WTF WTF????
         for packet in list(self.outgoing_packets):
             if packet.packet_type == MESSAGE:
                 packet.prev_link.add_packets([packet])
