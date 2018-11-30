@@ -12,12 +12,12 @@
     "flows": [
         {
             "id": "1",
-            "data_amount": "10",
+            "data_amount": "20",
             "start_time": "1",
             "source": "1",
             "dest": "2",
             "window": "1",
-            "protocol": "RENO"
+            "protocol": "FAST"
         }
     ],
     "hosts": [
