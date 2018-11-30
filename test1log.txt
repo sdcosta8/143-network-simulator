@@ -1,0 +1,338 @@
+ -----Table for router 1
+Router = 2 via link 1 with a cost of 0.0100256
+Router = 3 via link 2 with a cost of 0.0100256
+Router = 4 via link 1 with a cost of 0.0200768
+Host = 1 via link 6 with a cost of 0
+Host = 2 via link 1 with a cost of 0.0200768
+
+ -----Table for router 2
+Router = 1 via link 7 with a cost of 0.0100256
+Router = 4 via link 3 with a cost of 0.0100256
+Router = 3 via link 7 with a cost of 0.0200768
+Host = 1 via link 7 with a cost of 0.0100256
+Host = 2 via link 3 with a cost of 0.0100256
+
+ -----Table for router 3
+Router = 1 via link 8 with a cost of 0.0100256
+Router = 4 via link 4 with a cost of 0.0100256
+Router = 2 via link 8 with a cost of 0.0200768
+Host = 1 via link 8 with a cost of 0.0100256
+Host = 2 via link 4 with a cost of 0.0100256
+
+ -----Table for router 4
+Router = 2 via link 9 with a cost of 0.0100256
+Router = 3 via link 10 with a cost of 0.0100256
+Router = 1 via link 9 with a cost of 0.0200768
+Host = 1 via link 9 with a cost of 0.0200768
+Host = 2 via link 5 with a cost of 0
+
+ -----Table for router 1
+Router = 2 via link 1 with a cost of 0.0100256
+Router = 3 via link 2 with a cost of 0.0100256
+Router = 4 via link 1 with a cost of 0.0200768
+Host = 1 via link 6 with a cost of 0
+Host = 2 via link 1 with a cost of 0.0200768
+
+ -----Table for router 2
+Router = 1 via link 7 with a cost of 0.0100256
+Router = 4 via link 3 with a cost of 0.0100256
+Router = 3 via link 7 with a cost of 0.0200768
+Host = 1 via link 7 with a cost of 0.0100256
+Host = 2 via link 3 with a cost of 0.0100256
+
+ -----Table for router 3
+Router = 4 via link 8 with a cost of 0.0301536
+Router = 1 via link 4 with a cost of 0.0301536
+Router = 2 via link 8 with a cost of 0.0200768
+Host = 1 via link 4 with a cost of 0.0301536
+Host = 2 via link 8 with a cost of 0.0301536
+
+ -----Table for router 4
+Router = 3 via link 9 with a cost of 0.0301536
+Router = 2 via link 10 with a cost of 0.0301536
+Router = 1 via link 9 with a cost of 0.0200768
+Host = 1 via link 9 with a cost of 0.0200768
+Host = 2 via link 5 with a cost of 0
+
+ duplicate acks
+ sent packet 419 of flow 1
+ duplicate acks
+ sent packet 421 of flow 1
+ timeout occured! next_packet_to_send 425
+ duplicate acks
+ sent packet 433 of flow 1
+ duplicate acks
+ sent packet 441 of flow 1
+ duplicate acks
+ sent packet 457 of flow 1
+ duplicate acks
+ sent packet 465 of flow 1
+ duplicate acks
+ sent packet 473 of flow 1
+ duplicate acks
+ sent packet 481 of flow 1
+ duplicate acks
+ sent packet 489 of flow 1
+ duplicate acks
+ sent packet 497 of flow 1
+ duplicate acks
+ sent packet 505 of flow 1
+ duplicate acks
+ sent packet 513 of flow 1
+ duplicate acks
+ sent packet 521 of flow 1
+ duplicate acks
+ sent packet 529 of flow 1
+ duplicate acks
+ sent packet 537 of flow 1
+ duplicate acks
+ sent packet 545 of flow 1
+ duplicate acks
+ sent packet 553 of flow 1
+ duplicate acks
+ sent packet 561 of flow 1
+ -----Table for router 1
+Router = 2 via link 1 with a cost of 0.0482208
+Router = 3 via link 2 with a cost of 0.0100256
+Router = 4 via link 2 with a cost of 0.0200768
+Host = 1 via link 6 with a cost of 0
+Host = 2 via link 2 with a cost of 0.0200768
+
+ -----Table for router 2
+Router = 1 via link 3 with a cost of 0.0683488
+Router = 4 via link 3 with a cost of 0.0482208
+Router = 3 via link 3 with a cost of 0.058272000000000004
+Host = 1 via link 3 with a cost of 0.0683488
+Host = 2 via link 3 with a cost of 0.0482208
+
+ -----Table for router 3
+Router = 1 via link 8 with a cost of 0.0100256
+Router = 4 via link 4 with a cost of 0.0100256
+Router = 2 via link 8 with a cost of 0.058272000000000004
+Host = 1 via link 8 with a cost of 0.0100256
+Host = 2 via link 4 with a cost of 0.0100256
+
+ -----Table for router 4
+Router = 2 via link 10 with a cost of 0.0683488
+Router = 3 via link 10 with a cost of 0.0100256
+Router = 1 via link 10 with a cost of 0.0200768
+Host = 1 via link 10 with a cost of 0.0200768
+Host = 2 via link 5 with a cost of 0
+
+ duplicate acks
+ sent packet 569 of flow 1
+ duplicate acks
+ sent packet 577 of flow 1
+ duplicate acks
+ sent packet 585 of flow 1
+ duplicate acks
+ sent packet 593 of flow 1
+ duplicate acks
+ sent packet 601 of flow 1
+ duplicate acks
+ sent packet 609 of flow 1
+ duplicate acks
+ sent packet 617 of flow 1
+ duplicate acks
+ sent packet 625 of flow 1
+ duplicate acks
+ sent packet 633 of flow 1
+ duplicate acks
+ sent packet 641 of flow 1
+ duplicate acks
+ sent packet 649 of flow 1
+ duplicate acks
+ sent packet 657 of flow 1
+ duplicate acks
+ sent packet 665 of flow 1
+ duplicate acks
+ sent packet 673 of flow 1
+ duplicate acks
+ sent packet 681 of flow 1
+ duplicate acks
+ sent packet 689 of flow 1
+ duplicate acks
+ sent packet 697 of flow 1
+ duplicate acks
+ sent packet 705 of flow 1
+ duplicate acks
+ sent packet 713 of flow 1
+ duplicate acks
+ sent packet 721 of flow 1
+ duplicate acks
+ sent packet 729 of flow 1
+ duplicate acks
+ sent packet 737 of flow 1
+ duplicate acks
+ sent packet 745 of flow 1
+ duplicate acks
+ sent packet 753 of flow 1
+ duplicate acks
+ sent packet 761 of flow 1
+ duplicate acks
+ sent packet 769 of flow 1
+ duplicate acks
+ sent packet 777 of flow 1
+ duplicate acks
+ sent packet 785 of flow 1
+ duplicate acks
+ sent packet 793 of flow 1
+ duplicate acks
+ sent packet 801 of flow 1
+ duplicate acks
+ sent packet 809 of flow 1
+ duplicate acks
+ sent packet 817 of flow 1
+ duplicate acks
+ sent packet 825 of flow 1
+ duplicate acks
+ sent packet 833 of flow 1
+ duplicate acks
+ sent packet 841 of flow 1
+ -----Table for router 1
+Router = 2 via link 1 with a cost of 0.0100256
+Router = 3 via link 2 with a cost of 0.024105599999999998
+Router = 4 via link 1 with a cost of 0.0200768
+Host = 1 via link 6 with a cost of 0
+Host = 2 via link 1 with a cost of 0.0200768
+
+ -----Table for router 2
+Router = 1 via link 7 with a cost of 0.0100256
+Router = 4 via link 3 with a cost of 0.0100256
+Router = 3 via link 7 with a cost of 0.0341568
+Host = 1 via link 7 with a cost of 0.0100256
+Host = 2 via link 3 with a cost of 0.0100256
+
+ -----Table for router 3
+Router = 1 via link 4 with a cost of 0.0442336
+Router = 4 via link 4 with a cost of 0.024105599999999998
+Router = 2 via link 4 with a cost of 0.0341568
+Host = 1 via link 4 with a cost of 0.0442336
+Host = 2 via link 4 with a cost of 0.024105599999999998
+
+ -----Table for router 4
+Router = 2 via link 9 with a cost of 0.0100256
+Router = 3 via link 9 with a cost of 0.0442336
+Router = 1 via link 9 with a cost of 0.0200768
+Host = 1 via link 9 with a cost of 0.0200768
+Host = 2 via link 5 with a cost of 0
+
+ -----Table for router 1
+Router = 2 via link 1 with a cost of 0.0724384
+Router = 3 via link 2 with a cost of 0.0100256
+Router = 4 via link 2 with a cost of 0.0200768
+Host = 1 via link 6 with a cost of 0
+Host = 2 via link 2 with a cost of 0.0200768
+
+ -----Table for router 2
+Router = 1 via link 3 with a cost of 0.09681599999999999
+Router = 4 via link 3 with a cost of 0.0730016
+Router = 3 via link 3 with a cost of 0.08530560000000001
+Host = 1 via link 3 with a cost of 0.09681599999999999
+Host = 2 via link 3 with a cost of 0.0730016
+
+ -----Table for router 3
+Router = 1 via link 8 with a cost of 0.0108448
+Router = 4 via link 4 with a cost of 0.0100256
+Router = 2 via link 8 with a cost of 0.0833088
+Host = 1 via link 8 with a cost of 0.0108448
+Host = 2 via link 4 with a cost of 0.0100256
+
+ -----Table for router 4
+Router = 3 via link 10 with a cost of 0.011664
+Router = 2 via link 10 with a cost of 0.095024
+Router = 1 via link 10 with a cost of 0.0225344
+Host = 1 via link 10 with a cost of 0.0225344
+Host = 2 via link 5 with a cost of 0
+
+ duplicate acks
+ sent packet 2474 of flow 1
+ -----Table for router 1
+Router = 2 via link 1 with a cost of 0.0100768
+Router = 3 via link 2 with a cost of 0.13531200000000002
+Router = 4 via link 1 with a cost of 0.0201792
+Host = 1 via link 6 with a cost of 0
+Host = 2 via link 1 with a cost of 0.0201792
+
+ -----Table for router 2
+Router = 1 via link 7 with a cost of 0.0100256
+Router = 4 via link 3 with a cost of 0.0100768
+Router = 3 via link 7 with a cost of 0.14536320000000003
+Host = 1 via link 7 with a cost of 0.0100256
+Host = 2 via link 3 with a cost of 0.0100768
+
+ -----Table for router 3
+Router = 4 via link 4 with a cost of 0.1359264
+Router = 1 via link 4 with a cost of 0.1571808
+Router = 2 via link 4 with a cost of 0.1469504
+Host = 1 via link 4 with a cost of 0.1571808
+Host = 2 via link 4 with a cost of 0.1359264
+
+ -----Table for router 4
+Router = 2 via link 9 with a cost of 0.01064
+Router = 3 via link 9 with a cost of 0.15605440000000004
+Router = 1 via link 9 with a cost of 0.0206912
+Host = 1 via link 9 with a cost of 0.0206912
+Host = 2 via link 5 with a cost of 0
+
+ -----Table for router 1
+Router = 2 via link 1 with a cost of 0.2390944
+Router = 3 via link 2 with a cost of 0.0100256
+Router = 4 via link 2 with a cost of 0.0200768
+Host = 1 via link 6 with a cost of 0
+Host = 2 via link 2 with a cost of 0.0200768
+
+ -----Table for router 2
+Router = 4 via link 3 with a cost of 0.2397088
+Router = 3 via link 3 with a cost of 0.2629184
+Router = 1 via link 3 with a cost of 0.275248
+Host = 1 via link 3 with a cost of 0.275248
+Host = 2 via link 3 with a cost of 0.2397088
+
+ -----Table for router 3
+Router = 1 via link 8 with a cost of 0.011664
+Router = 4 via link 4 with a cost of 0.0100256
+Router = 2 via link 8 with a cost of 0.250784
+Host = 1 via link 8 with a cost of 0.011664
+Host = 2 via link 4 with a cost of 0.0100256
+
+ -----Table for router 4
+Router = 3 via link 10 with a cost of 0.022569600000000002
+Router = 2 via link 10 with a cost of 0.2734048
+Router = 1 via link 10 with a cost of 0.034259200000000004
+Host = 1 via link 10 with a cost of 0.034259200000000004
+Host = 2 via link 5 with a cost of 0
+
+ duplicate acks
+ sent packet 15255 of flow 1
+ -----Table for router 1
+Router = 2 via link 1 with a cost of 0.0100256
+Router = 3 via link 2 with a cost of 0.2479008
+Router = 4 via link 1 with a cost of 0.0200768
+Host = 1 via link 6 with a cost of 0
+Host = 2 via link 1 with a cost of 0.0200768
+
+ -----Table for router 2
+Router = 1 via link 7 with a cost of 0.03624
+Router = 4 via link 3 with a cost of 0.0100256
+Router = 3 via link 7 with a cost of 0.2841664
+Host = 1 via link 7 with a cost of 0.03624
+Host = 2 via link 3 with a cost of 0.0100256
+
+ -----Table for router 3
+Router = 4 via link 4 with a cost of 0.24851520000000002
+Router = 1 via link 4 with a cost of 0.3335648
+Router = 2 via link 4 with a cost of 0.2966592
+Host = 1 via link 4 with a cost of 0.3335648
+Host = 2 via link 4 with a cost of 0.24851520000000002
+
+ -----Table for router 4
+Router = 2 via link 9 with a cost of 0.047504000000000005
+Router = 3 via link 9 with a cost of 0.3317216
+Router = 1 via link 9 with a cost of 0.0837696
+Host = 1 via link 9 with a cost of 0.0837696
+Host = 2 via link 5 with a cost of 0
+
+flow no 1 has finished sending
+All flows finished!
+30.73038335983384

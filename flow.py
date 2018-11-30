@@ -49,7 +49,7 @@ class Flow:
         self.repeated_ack_count = 0
         # The next packet to send in normal situations
         self.next_packet_to_send = 1
-        # Unacknowledged packets of the sender
+        # Unacknowledged packets of the sender: tuple (pkt_no, sent_time)
         self.unack_packets = []
         # The current window size
         self.window = window
@@ -108,7 +108,7 @@ class Flow:
             #     print(" sent packet", self.next_packet_to_send, "of flow", self.id)
 
             # Update flow's unacknowledged packets list & next packet to send
-            self.unack_packets.append(self.next_packet_to_send)
+            self.unack_packets.append((self.next_packet_to_send, self.curr_time))
             self.next_packet_to_send += 1
 
 
@@ -139,6 +139,7 @@ class Flow:
             if pkt.expecting_packet == self.num_packets + 1:
                 self.finished = True
                 print("flow no", self.id, "has finished sending")
+                return
             
             # Book keeping for resetting during a timeout
             self.expecting_packet = pkt.expecting_packet
@@ -170,7 +171,7 @@ class Flow:
 
             # If 0th packet is acked, remove all packets before expecting pkt
             while (len(self.unack_packets) > 0 and
-            self.unack_packets[0] < pkt.expecting_packet):
+            self.unack_packets[0][0] < pkt.expecting_packet):
                 self.unack_packets.pop(0)
                 self.repeated_ack_count = 0
 
@@ -183,10 +184,8 @@ class Flow:
             #     )
             # print("  rto_timer:", self.rto_timer, "RTO:", self.rto)
 
-            # Update window size if we are using RENO
-            if self.protocol == "RENO":
-                self.update_flow_control_ack()
-            elif self.protocol == "FAST":
+            # Handle the ack according to protocol
+            if self.protocol == "RENO" or self.protocol == "FAST":
                 self.update_flow_control_ack()
 
         # Check if the received object is a packet
@@ -222,9 +221,9 @@ class Flow:
         '''
         if (self.curr_time - self.rto_timer) >= self.rto:
             # If this flow has timed out, update flow control
-            print("timeout occured")
             self.update_flow_control_rto()
-            print("next_packet_to_send", self.next_packet_to_send)
+            print(" timeout occured! next_packet_to_send",
+                  self.next_packet_to_send)
             self.window_sizes.append([self.curr_time, self.window])
 
 
@@ -283,11 +282,19 @@ class Flow:
         if self.repeated_ack_count == 0 or self.repeated_ack_count == 3:
             self.rto_timer = self.curr_time
 
-        # frfr is the same for both RENO and FAST
+        # frfr is approximately the same for both RENO and FAST
         if self.tcp_phase == "FR":
             # in fast recovery (exponential) phase
-            if (self.repeated_ack_count == 0 or
-                self.window + 1 >= 3 * self.ssthresh - 1):
+            if (self.repeated_ack_count == 0 and
+                self.protocol == "FAST" and
+                len(self.unack_packets) > 0 and
+                self.unack_packets[0][0] == self.expecting_packet and
+                self.unack_packets[0][1] < self.curr_time - self.rto):
+                # if the new expecting packet was sent too long ago
+                self.enter_frfr()
+            
+            elif (self.repeated_ack_count == 0 or
+                  self.window >= 3 * self.ssthresh - 1):
                 # exit fr if window is large enough or get successful ack
                 self.tcp_phase = "CA"
                 self.window = self.ssthresh
@@ -303,15 +310,20 @@ class Flow:
             self.enter_frfr()
 
         if self.protocol == "FAST":
-            if self.tcp_phase == "SS" and self.window + 1 >= self.ssthresh:
-                # if reach ssthresh, enter CA
-                self.window = self.ssthresh
-                self.tcp_phase = "CA"
+            # TODO add a new mechanism for exiting SS and entering CA
+            if self.tcp_phase == "SS":
+                if self.window >= self.ssthresh:
+                    # if reach ssthresh, enter CA
+                    self.window = self.ssthresh
+                    self.tcp_phase = "CA"
+                elif self.repeated_ack_count == 0:
+                    # still SS, increment window
+                    self.window += 1
 
         elif self.protocol == "RENO":
             if self.tcp_phase == "SS":
                 # in slow start SS phase
-                if self.window + 1 >= self.ssthresh:
+                if self.window >= self.ssthresh:
                     # if reach ssthresh, enter CA
                     self.window = self.ssthresh
                     self.tcp_phase = "CA"
@@ -349,7 +361,7 @@ class Flow:
             self.check_for_timeouts()
         
         # periodically update window size
-        if self.protocol == "FAST" and self.tcp_phase != "FR":
+        if self.protocol == "FAST" and self.tcp_phase == "CA":
 
             # If we reach the end of SS, switch to CA
             if self.tcp_phase == "SS" and self.window >= self.ssthresh:
