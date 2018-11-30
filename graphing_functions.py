@@ -121,11 +121,11 @@ def create_graphs(buffer_occ_dicts, packet_loss_dicts, last_time, \
         link_order)
     points_dict['Packet Loss (pkts)'] = convert_to_lists(packet_loss_dicts, 
         link_order)    
-    points_dict['Link Rate (bps)'] = convert_to_lists(link_rate_dicts, 
+    points_dict['Link Rate (Mbps)'] = convert_to_lists(link_rate_dicts, 
         link_order)        
     points_dict['Window Size (pkts)'] = convert_to_lists(wind_size_dicts, 
         flow_order) 
-    points_dict['Flow Rate (bps)'] = convert_to_lists(flow_rate_dicts, 
+    points_dict['Flow Rate (Mbps)'] = convert_to_lists(flow_rate_dicts, 
         flow_order)     
     points_dict['Packet Delay (sec)'] = convert_to_lists(packet_delay_dicts, 
         flow_order)  
@@ -147,5 +147,5 @@ def create_graphs(buffer_occ_dicts, packet_loss_dicts, last_time, \
     if PLOT_PARALLEL and test_case == 'test1':
         plot_parallel_links(points_dict['Buffer Occupancy (pkts)'], \
             last_time, 'Buffer Occupancy (pkts)')
-        plot_parallel_links(points_dict['Link Rate (bps)'], \
-            last_time, 'Link Rate (bps)')
+        plot_parallel_links(points_dict['Link Rate (Mbps)'], \
+            last_time, 'Link Rate (Mbps)')

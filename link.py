@@ -143,8 +143,8 @@ class Link:
 
         # Link rate = total bits from packets so far + bits of this 
         # packet / TIMESTEP
-        self.link_rates[len(self.link_rates) - 1][1] += packet.num_bits
-        self.link_rates[len(self.link_rates) - 2][1] += packet.num_bits
+        self.link_rates[len(self.link_rates) - 1][1] += (packet.num_bits / 1e6)
+        self.link_rates[len(self.link_rates) - 2][1] += (packet.num_bits / 1e6)
         
 
     def run(self, curr_time):
@@ -173,17 +173,17 @@ class Link:
             self.buffer_occupancy.append([curr_time, len(self.buffer)])
 
             if len(self.link_rates) > 1:
-                prev_time = curr_time - (1000 * self.network.timestep)
+                prev_time = curr_time - (10000 * self.network.timestep)
                 self.link_rates.append([prev_time, 0])
             self.link_rates.append([curr_time, 0])
 
             # Update the previous values
             if len(self.link_rates) - 4 > 0:
-                self.link_rates[len(self.link_rates) - 4][1] /= (1000 * self.network.timestep)
-                self.link_rates[len(self.link_rates) - 3][1] /= (1000 * self.network.timestep)
+                self.link_rates[len(self.link_rates) - 4][1] /= (10000 * self.network.timestep)
+                self.link_rates[len(self.link_rates) - 3][1] /= (10000 * self.network.timestep)
 
 
             self.packet_loss.append([curr_time, 0])
-            self.packet_loss.append([curr_time + 1000 * self.network.timestep, 0])
+            self.packet_loss.append([curr_time + 10000 * self.network.timestep, 0])
 
 

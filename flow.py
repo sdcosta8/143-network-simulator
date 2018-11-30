@@ -40,6 +40,8 @@ class Flow:
         self.alpha = 3
         # gamma for FAST
         self.gamma = 0.8
+        # Threshold for exiting ss for FAST
+        self.th = 3
         # The number of segments to separate the window increment over 1 RTT
         self.n_window_inc = 5
         # Max of all acks' expecting_packet so far
@@ -312,9 +314,10 @@ class Flow:
         if self.protocol == "FAST":
             # TODO add a new mechanism for exiting SS and entering CA
             if self.tcp_phase == "SS":
-                if self.window >= self.ssthresh:
+                if (self.window >= self.ssthresh or
+                    (1/self.min_rtt - 1/self.rtt) != 0 and
+                    self.window >= self.th / (1/self.min_rtt - 1/self.rtt)):
                     # if reach ssthresh, enter CA
-                    self.window = self.ssthresh
                     self.tcp_phase = "CA"
                 elif self.repeated_ack_count == 0:
                     # still SS, increment window
@@ -325,7 +328,6 @@ class Flow:
                 # in slow start SS phase
                 if self.window >= self.ssthresh:
                     # if reach ssthresh, enter CA
-                    self.window = self.ssthresh
                     self.tcp_phase = "CA"
                 elif self.repeated_ack_count == 0:
                     # still SS, increment window
@@ -392,10 +394,16 @@ class Flow:
             self.window_sizes.append([self.curr_time, self.window])
         if self.network.counter % 5000 == 0:
             if len(self.flow_rates) != 0:
-                self.flow_rates.append([curr_time - (1000 * self.network.timestep), \
-                    (self.num_packets_received * PACKET_SIZE) / 1000 * self.network.timestep])
-            self.flow_rates.append([curr_time, (self.num_packets_received * PACKET_SIZE) / \
-                1000 * self.network.timestep])
+                self.flow_rates.append([
+                    curr_time - (5000 * self.network.timestep),
+                    (self.num_packets_received * PACKET_SIZE / 1e6) /
+                    (5000 * self.network.timestep)
+                ])
+            self.flow_rates.append([
+                curr_time,
+                (self.num_packets_received * PACKET_SIZE / 1e6) / 
+                (5000 * self.network.timestep)
+            ])
             self.num_packets_received = 0 
         
         

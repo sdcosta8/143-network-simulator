@@ -81,7 +81,7 @@
             "source": "0",
             "dest": "1",
             "window": "1",
-            "protocol": ""
+            "protocol": "FAST"
         }, 
         {
             "id": "2",
@@ -90,7 +90,7 @@
             "source": "2",
             "dest": "3",
             "window": "1",
-            "protocol": ""
+            "protocol": "FAST"
         }, 
         {
             "id": "3",
@@ -99,7 +99,7 @@
             "source": "4",
             "dest": "5",
             "window": "1",
-            "protocol": "RENO"
+            "protocol": "FAST"
         }
     ],
     "hosts": [
