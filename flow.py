@@ -37,9 +37,11 @@ class Flow:
         # Slow start threshold
         self.ssthresh = float("inf")
         # alpha for FAST
-        self.alpha = 10
+        self.alpha = 3
         # gamma for FAST
-        self.gamma = 0.5
+        self.gamma = 0.8
+        # The number of segments to separate the window increment over 1 RTT
+        self.n_window_inc = 5
         # Max of all acks' expecting_packet so far
         # Used as reference to reset next_packet_to_send during timeout
         self.expecting_packet = 1
@@ -258,7 +260,7 @@ class Flow:
                 (1-self.gamma) * (self.window) + 
                 (self.gamma) * (self.min_rtt / self.rtt * self.window + self.alpha)
             ) - self.window
-        print(" W =", self.window, " W_new =", delta_w + self.window)
+        print(self.tcp_phase, "W =", self.window, " W_new =", delta_w + self.window)
         return delta_w
 
     def enter_frfr(self):
@@ -289,7 +291,7 @@ class Flow:
                 # exit fr if window is large enough or get successful ack
                 self.tcp_phase = "CA"
                 self.window = self.ssthresh
-                # Reset things when we exit frfr MAYBE? TODO
+                # Reset things when we exit frfr
                 if self.protocol == "FAST":
                     self.rtt_endpoint = self.curr_time
                     self.is_update_rtt = False
@@ -357,12 +359,12 @@ class Flow:
             if self.rtt_endpoint <= self.curr_time:
                 if self.is_update_rtt:
                     # Schecule update of window, split it up over timesteps
-                    self.window_increment = self.calculate_flow_control_fast() / 1
-                    delta_t = self.avg_rtt / 1
+                    self.window_increment = self.calculate_flow_control_fast() / self.n_window_inc
+                    delta_t = self.avg_rtt / self.n_window_inc
                     # Mark the update times in a list
                     while delta_t <= self.avg_rtt:
                         self.next_update_times.append(self.curr_time + delta_t)
-                        delta_t += self.avg_rtt / 1
+                        delta_t += self.avg_rtt / self.n_window_inc
                 self.is_update_rtt = not self.is_update_rtt
                 self.rtt_endpoint = self.curr_time + self.avg_rtt
             
