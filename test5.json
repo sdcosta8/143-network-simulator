@@ -1,0 +1,110 @@
+{
+    "links": [
+        {
+            "id": "1",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "H1",
+            "sink": "R1"
+        },
+        {
+            "id": "2",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "H2",
+            "sink": "R1"
+        },
+        {
+            "id": "3",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "H3",
+            "sink": "R1"
+        },
+        {
+            "id": "4",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "H4",
+            "sink": "R1"
+        },
+        {
+            "id": "5",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "R1",
+            "sink": "H5"
+        }               
+    ],
+    "flows": [
+        {
+            "id": "1",
+            "data_amount": "50",
+            "start_time": "0.5",
+            "source": "1",
+            "dest": "5",
+            "window": "1",
+            "protocol": "FAST"
+        }, 
+        {
+            "id": "2",
+            "data_amount": "30",
+            "start_time": "15",
+            "source": "2",
+            "dest": "5",
+            "window": "1",
+            "protocol": "FAST"
+        },
+        {
+            "id": "3",
+            "data_amount": "30",
+            "start_time": "15",
+            "source": "3",
+            "dest": "5",
+            "window": "1",
+            "protocol": "FAST"
+        },
+        {
+            "id": "4",
+            "data_amount": "30",
+            "start_time": "15",
+            "source": "4",
+            "dest": "5",
+            "window": "1",
+            "protocol": "FAST"
+        }
+    ],
+    "hosts": [
+        {
+            "id": "1",
+            "ip": "H1"
+        },
+        {
+            "id": "2",
+            "ip": "H2"
+        },
+        {
+            "id": "3",
+            "ip": "H3"
+        },
+        {
+            "id": "4",
+            "ip": "H4"
+        },
+        {
+            "id": "5",
+            "ip": "H5"
+        }
+    ], 
+    "routers": [
+        {
+            "id": "1",
+            "ip": "R1"
+        }
+    ]
+}
