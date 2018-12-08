@@ -77,6 +77,8 @@ class Flow:
         # Timeout timer, reset to curr_time at successful acks and timeouts
         self.rto_timer = 0
 
+        self.update_flag = False
+
         # ================ Destination host ========================
         # Received packets of the receiver
         self.received_packets = {}
@@ -312,7 +314,7 @@ class Flow:
             self.enter_frfr()
 
         if self.protocol == "FAST":
-            if self.tcp_phase == "SS":
+            if self.tcp_phase == "SS" and self.update_flag:
                 if (self.window >= self.ssthresh or
                     (1/self.min_rtt - 1/self.rtt) != 0 and
                     self.window >= self.th / (1/self.min_rtt - 1/self.rtt)):
@@ -321,6 +323,7 @@ class Flow:
                 elif self.repeated_ack_count == 0:
                     # still SS, increment window
                     self.window += 1
+            self.update_flag = not self.update_flag
 
         elif self.protocol == "RENO":
             if self.tcp_phase == "SS":
