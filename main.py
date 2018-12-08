@@ -32,12 +32,9 @@ def convert_to_bits(num, units):
     if units == Mb:
         return num * 1e6
 
-
 # Converts a number in ms to s
 def convert_to_seconds(ms):
     return ms * 0.001
-
-
 
 if __name__ == '__main__':
     filename = sys.argv[1]
@@ -111,8 +108,6 @@ if __name__ == '__main__':
             sink.incoming_links.append(new_link_1) 
             sink.neighbors.append(src)
 
-
-
     # In Debug mode, we want to print out all the fields we set at initialization
     if DEBUG:
         print("\n")
@@ -177,6 +172,8 @@ if __name__ == '__main__':
             print("    Destination IP Address: " + str(flow[1].destination.ip))
             print("    Time Spawned " + str(flow[1].time_spawn))
             print("    Window Size: " + str(flow[1].window))
+            print("    Protocol: " + str(flow[1].protocol))
+
     # This will find the minimum time step for each iteration 
     lst_link_prop = []
     lst_link_rate = []
@@ -187,10 +184,8 @@ if __name__ == '__main__':
     timestep = find_time_step(lst_link_rate, lst_link_prop)
     network.timestep = timestep
 
-
     # Start the network!
     network.run_network()
-
 
     # Get the values for the calculations each link keeps track of
     # Convert to a list so that we can index each item 
@@ -213,7 +208,7 @@ if __name__ == '__main__':
         link_rate_dicts.append(element[1].link_rates)
 
     # Get the values for the calculations each flow keeps track of 
-    flow_list = network.flows.items()
+    flow_list = list(network.flows.items())
     wind_size_dicts = []
     flow_rate_dicts = []
     packet_delay_dicts = []
@@ -224,8 +219,13 @@ if __name__ == '__main__':
         flow_rate_dicts.append(element[1].flow_rates)
         packet_delay_dicts.append(element[1].packet_delays)
 
+    # For tests 3 and 4, different flows have different protocols. In other cases,
+    # we want to label the graphs with the protocols they follow
+    protocol = ""
+    if filename.split('.')[0] != 'test3' and filename.split('.')[0] != 'test4':
+        protocol = flow_list[0][1].protocol
+
     # Send the plots to the graphing function 
     graph.create_graphs(buffer_occ_dicts, packet_loss_dicts, network.curr_time, \
         link_rate_dicts, wind_size_dicts, flow_rate_dicts, packet_delay_dicts, \
-        link_order, flow_order, filename.split('.')[0])
-
+        link_order, flow_order, filename.split('.')[0], protocol)
