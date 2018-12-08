@@ -2,6 +2,7 @@ import matplotlib.pyplot as plt
 from utils import (
     INDIV_SERIES, INDIV_GRAPHS, GRAPHS_TOGETHER, PLOT_PARALLEL, TEST_2_DIRECTION
 )
+import os
 
 # Helper function for converting the dictionaries to a list 
 # representation. We use this so that we only have to convert one time 
@@ -149,6 +150,14 @@ def create_graphs(buffer_occ_dicts, packet_loss_dicts, last_time, \
         flow_order)     
     points_dict['Packet Delay (sec)'] = convert_to_lists(packet_delay_dicts, 
         flow_order)  
+
+    # create a directory for the test case if it doesn't exist
+    directory = test_case
+    try:
+        if not os.path.exists(directory):
+            os.makedirs(directory)
+    except OSError:
+        print ('Error: Creating directory. ' +  directory)
 
     # All graphs on one figure
     if GRAPHS_TOGETHER:
