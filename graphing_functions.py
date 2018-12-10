@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 from utils import (
-    INDIV_SERIES, INDIV_GRAPHS, GRAPHS_TOGETHER, PLOT_PARALLEL, TEST_2_DIRECTION
+    INDIV_SERIES, INDIV_GRAPHS, GRAPHS_TOGETHER, PLOT_PARALLEL, TEST_2_DIRECTION, 
+    ISOLATE_LINKS
 )
 import os
 
@@ -132,6 +133,27 @@ def plot_parallel_links(data, last_time, y_label, protocol):
     plot_graphs({y_label: [L3_left, L4_left]}, last_time, 1, 'test1/' + 
         protocol + 'Parallel' + "L3L4_left" + y_label.split(' (')[0] + '.png', 1, 0.5, 1.15)
 
+def isolate_links(data):
+    L1_right = None
+    L1_left = None
+    L2_right = None
+    L2_left = None
+    L3_right = None
+    L3_left = None
+    for element in data:
+        if element[2] == 'L1_right':
+            L1_right = element
+        elif element[2] == 'L1_left':
+            L1_left = element
+        elif element[2] == 'L2_right':
+            L2_right = element
+        elif element[2] == 'L2_left':
+            L2_left = element
+        elif element[2] == 'L3_right':
+            L3_right = element
+        elif element[2] == 'L3_left':
+            L3_left = element
+    return [L1_right, L2_right, L3_right, L1_left, L2_left, L3_left]
 
 # The function that should be called from outside this file
 def create_graphs(buffer_occ_dicts, packet_loss_dicts, last_time, \
@@ -185,3 +207,11 @@ def create_graphs(buffer_occ_dicts, packet_loss_dicts, last_time, \
             last_time, 'Buffer Occupancy (pkts)', protocol)
         plot_2_direction(points_dict['Link Rate (Mbps)'], \
             last_time, 'Link Rate (Mbps)', protocol)
+
+    if ISOLATE_LINKS and (test_case == 'extra_test' or test_case == 'extra_test_no_switching'):
+        points_dict['Buffer Occupancy (pkts)'] = isolate_links(points_dict['Buffer Occupancy (pkts)'])
+        points_dict['Link Rate (Mbps)'] = isolate_links(points_dict['Link Rate (Mbps)'])
+        points_dict['Packet Loss (pkts)'] = isolate_links(points_dict['Packet Loss (pkts)'])
+        plot_graphs(points_dict, last_time, 6, test_case + '/' + protocol + 
+            'AllGraphsIsolatedLinks.png', 0.8, 1.2, 0.8)
+
