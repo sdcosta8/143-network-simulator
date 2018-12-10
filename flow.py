@@ -227,7 +227,7 @@ class Flow:
             # If this flow has timed out, update flow control
             self.update_flow_control_rto()
             print(" timeout occured! next_packet_to_send",
-                  self.next_packet_to_send)
+                  self.next_packet_to_send, self.curr_time)
             self.window_sizes.append([self.curr_time, self.window])
 
 
@@ -338,7 +338,9 @@ class Flow:
                 # in congestion avoidance CA (linear) phase
                 if self.repeated_ack_count == 0:
                     self.window += 1 / self.window
-        
+
+        print(self.curr_time, self.tcp_phase, "W =",
+                self.window, "dup-ack =", self.repeated_ack_count)
         
 
 
@@ -355,7 +357,8 @@ class Flow:
         # Check if this flow should be initialized
         if self.spawned == False:
             if self.curr_time >= self.time_spawn:
-                self.spawned == True
+                self.spawned = True
+                self.rto_timer = self.curr_time
             else:
                 return
         
