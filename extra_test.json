@@ -10,7 +10,7 @@
         },
         {
             "id": "1",
-            "link_rate": "25",
+            "link_rate": "10",
             "prop_delay": "10",
             "buff_size": "64",
             "source": "R1",
@@ -45,7 +45,7 @@
         {
             "id": "1",
             "data_amount": "20",
-            "start_time": "0.5",
+            "start_time": "10",
             "source": "1",
             "dest": "2",
             "window": "1",

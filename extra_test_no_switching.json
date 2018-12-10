@@ -45,7 +45,7 @@
         {
             "id": "1",
             "data_amount": "20",
-            "start_time": "0.5",
+            "start_time": "10",
             "source": "1",
             "dest": "2",
             "window": "1",
