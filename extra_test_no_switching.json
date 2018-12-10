@@ -45,11 +45,11 @@
         {
             "id": "1",
             "data_amount": "20",
-            "start_time": "10",
+            "start_time": "5",
             "source": "1",
             "dest": "2",
             "window": "1",
-            "protocol": "RENO"
+            "protocol": "FAST"
         }
     ],
     "hosts": [

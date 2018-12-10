@@ -228,4 +228,4 @@ if __name__ == '__main__':
     # Send the plots to the graphing function 
     graph.create_graphs(buffer_occ_dicts, packet_loss_dicts, network.curr_time, \
         link_rate_dicts, wind_size_dicts, flow_rate_dicts, packet_delay_dicts, \
-        link_order, flow_order, filename.split('.')[0], protocol)
+        link_order, flow_order, filename.split('.')[0], protocol, network.curr_time + 1)
