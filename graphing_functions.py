@@ -215,4 +215,5 @@ def create_graphs(buffer_occ_dicts, packet_loss_dicts, last_time, \
         points_dict['Packet Loss (pkts)'] = isolate_links(points_dict['Packet Loss (pkts)'])
         plot_graphs(points_dict, last_time, 6, test_case + '/' + protocol + 
             'AllGraphsIsolatedLinks.png', 0.8, 1.2, 0.8, max_time)
+        plot_each_graph_separate(points_dict, last_time, test_case, 'IsolatedLinks' + protocol, max_time)
 
