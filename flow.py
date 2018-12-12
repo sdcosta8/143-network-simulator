@@ -37,11 +37,11 @@ class Flow:
         # Slow start threshold
         self.ssthresh = float("inf")
         # alpha for FAST
-        self.alpha = 3
+        self.alpha = 10
         # gamma for FAST
         self.gamma = 0.8
         # Threshold for exiting ss for FAST
-        self.th = 3
+        self.th = 10
         # The number of segments to separate the window increment over 1 RTT
         self.n_window_inc = 5
         # Max of all acks' expecting_packet so far
@@ -317,7 +317,7 @@ class Flow:
             if self.tcp_phase == "SS" and self.update_flag:
                 if (self.window >= self.ssthresh or
                     (1/self.min_rtt - 1/self.rtt) != 0 and
-                    self.window >= self.th / (1/self.min_rtt - 1/self.rtt)):
+                    self.window * self.min_rtt >= self.th / (1/self.min_rtt - 1/self.rtt)):
                     # if reach ssthresh, enter CA
                     self.tcp_phase = "CA"
                 elif self.repeated_ack_count == 0:
