@@ -1,0 +1,35 @@
+{
+    "links": [
+        {
+            "id": "1",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "H1",
+            "sink": "H2"
+        }
+    ],
+    "flows": [
+        {
+            "id": "1",
+            "data_amount": "20",
+            "start_time": "1",
+            "source": "1",
+            "dest": "2",
+            "window": "1",
+            "protocol": "RENO"
+        }
+    ],
+    "hosts": [
+        {
+            "id": "1",
+            "ip": "H1"
+        },
+        {
+            "id": "2",
+            "ip": "H2"
+        }
+    ], 
+    "routers": [
+    ]
+}

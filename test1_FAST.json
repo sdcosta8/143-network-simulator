@@ -1,0 +1,91 @@
+{
+    "links": [
+        {
+            "id": "0",
+            "link_rate": "12.5",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "H1",
+            "sink": "R1"
+        },
+        {
+            "id": "1",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "R1",
+            "sink": "R2"
+        },
+        {
+            "id": "2",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "R1",
+            "sink": "R3"
+        },
+        {
+            "id": "3",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "R2",
+            "sink": "R4"
+        },
+        {
+            "id": "4",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "R3",
+            "sink": "R4"
+        },
+        {
+            "id": "5",
+            "link_rate": "12.5",
+            "prop_delay": "10",
+            "buff_size": "64",
+            "source": "R4",
+            "sink": "H2"
+        }                
+    ],
+    "flows": [
+        {
+            "id": "1",
+            "data_amount": "20",
+            "start_time": "0.5",
+            "source": "1",
+            "dest": "2",
+            "window": "1",
+            "protocol": "FAST"
+        }
+    ],
+    "hosts": [
+        {
+            "id": "1",
+            "ip": "H1"
+        },
+        {
+            "id": "2",
+            "ip": "H2"
+        }
+    ], 
+    "routers": [
+        {
+            "id": "1",
+            "ip": "R1"
+        },
+        {
+            "id": "2",
+            "ip": "R2"
+        },
+        {
+            "id": "3",
+            "ip": "R3"
+        },
+        {
+            "id": "4",
+            "ip": "R4"
+        }
+    ]
+}

@@ -1,0 +1,149 @@
+{
+    "links": [
+        {
+            "id": "0",
+            "link_rate": "12.5",
+            "prop_delay": "10",
+            "buff_size": "128",
+            "source": "H2",
+            "sink": "R1"
+        },
+        {
+            "id": "1",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "128",
+            "source": "R1",
+            "sink": "R2"
+        },
+        {
+            "id": "2",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "128",
+            "source": "R2",
+            "sink": "R3"
+        },
+        {
+            "id": "3",
+            "link_rate": "10",
+            "prop_delay": "10",
+            "buff_size": "128",
+            "source": "R3",
+            "sink": "R4"
+        },
+        {
+            "id": "4",
+            "link_rate": "12.5",
+            "prop_delay": "10",
+            "buff_size": "128",
+            "source": "R1",
+            "sink": "H0"
+        },
+        {
+            "id": "5",
+            "link_rate": "12.5",
+            "prop_delay": "10",
+            "buff_size": "128",
+            "source": "H3",
+            "sink": "R2"
+        },
+        {
+            "id": "6",
+            "link_rate": "12.5",
+            "prop_delay": "10",
+            "buff_size": "128",
+            "source": "H4",
+            "sink": "R3"
+        },
+        {
+            "id": "7",
+            "link_rate": "12.5",
+            "prop_delay": "10",
+            "buff_size": "128",
+            "source": "H1",
+            "sink": "R4"
+        },
+        {
+            "id": "8",
+            "link_rate": "12.5",
+            "prop_delay": "10",
+            "buff_size": "128",
+            "source": "R4",
+            "sink": "H5"
+        }                
+    ],
+    "flows": [
+        {
+            "id": "1",
+            "data_amount": "35",
+            "start_time": "0.5",
+            "source": "0",
+            "dest": "1",
+            "window": "1",
+            "protocol": "FAST"
+        }, 
+        {
+            "id": "2",
+            "data_amount": "15",
+            "start_time": "10",
+            "source": "2",
+            "dest": "3",
+            "window": "1",
+            "protocol": "FAST"
+        }, 
+        {
+            "id": "3",
+            "data_amount": "30",
+            "start_time": "20",
+            "source": "4",
+            "dest": "5",
+            "window": "1",
+            "protocol": "FAST"
+        }
+    ],
+    "hosts": [
+        {
+            "id": "0",
+            "ip": "H0"
+        },
+        {
+            "id": "1",
+            "ip": "H1"
+        },
+        {
+            "id": "2",
+            "ip": "H2"
+        },
+        {
+            "id": "3",
+            "ip": "H3"
+        },
+        {
+            "id": "4",
+            "ip": "H4"
+        },
+        {
+            "id": "5",
+            "ip": "H5"
+        }
+    ], 
+    "routers": [
+        {
+            "id": "1",
+            "ip": "R1"
+        },
+        {
+            "id": "2",
+            "ip": "R2"
+        },
+        {
+            "id": "3",
+            "ip": "R3"
+        },
+        {
+            "id": "4",
+            "ip": "R4"
+        }
+    ]
+}
