@@ -36,8 +36,8 @@ def convert_to_bits(num, units):
 def convert_to_seconds(ms):
     return ms * 0.001
 
-if __name__ == '__main__':
-    filename = sys.argv[1]
+
+def run_simulation(filename):
     network = Network()
 
     with open(filename) as f:
@@ -229,3 +229,8 @@ if __name__ == '__main__':
     graph.create_graphs(buffer_occ_dicts, packet_loss_dicts, network.curr_time, \
         link_rate_dicts, wind_size_dicts, flow_rate_dicts, packet_delay_dicts, \
         link_order, flow_order, filename.split('.')[0], protocol, network.curr_time + 1)
+
+
+if __name__ == '__main__':
+    filename = sys.argv[1]
+    run_simulation(filename)
